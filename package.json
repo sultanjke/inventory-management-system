@@ -15,24 +15,24 @@
     "@mui/x-data-grid": "^8.11.3",
     "axios": "^1.12.2",
     "lucide-react": "^0.544.0",
-    "next": "15.5.3",
+    "next": "^15.5.3",
     "numeral": "^2.0.6",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "recharts": "^3.2.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20.19.17",
+    "@types/node": "^20.19.18",
     "@types/numeral": "^2.0.5",
-    "@types/react": "^19",
+    "@types/react": "^19.1.16",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5.9.2"
   }
 }

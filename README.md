@@ -16,7 +16,7 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Data Modeling Diagram ([DrawSQL](https://drawsql.app/teams/team-3023/diagrams/56-inventorymanagement))
+### 📊 Data Modeling Diagram ([DrawSQL](https://drawsql.app/teams/team-3023/diagrams/56-inventorymanagement))
 
 <img width="2502" height="1530" alt="drawSQL-image-export-2025-10-25" src="https://github.com/user-attachments/assets/3bc3c1d5-1640-435e-8768-3dee820f345e" />
 

@@ -13,13 +13,17 @@
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.4",
     "@mui/x-data-grid": "^8.14.1",
+    "@reduxjs/toolkit": "^2.9.2",
     "axios": "^1.12.2",
+    "dotenv": "^17.2.3",
     "lucide-react": "^0.546.0",
-    "next": "14.2.4",
+    "next": "^14.2.33",
     "numeral": "^2.0.6",
     "react": "^18",
     "react-dom": "^18",
+    "react-redux": "^9.2.0",
     "recharts": "^3.3.0",
+    "redux-persist": "^6.0.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

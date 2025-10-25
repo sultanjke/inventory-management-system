@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org/), full-stack Inventory (Warehouse) Management Application using Next.js, Redux, Node, and AWS. Project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). 
+This is a [Next.js](https://nextjs.org/) - full-stack Inventory (Warehouse) Management Application bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). 
 
 ## Getting Started
 

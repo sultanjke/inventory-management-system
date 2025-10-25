@@ -16,38 +16,33 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Below all the tech stack used for this project to be built.
+# Below all the technologies provided with URL which was used to build this project.
 
-## Links Backend:
+## 🔗 Backend Resources
+- [Node.js](https://nodejs.org/en)
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [PostgreSQL](https://www.postgresql.org/download/)
+- [pgAdmin](https://www.pgadmin.org/download/)
+- [Prisma Docs](https://www.prisma.io/docs/getting-started)
+- [Prisma Types Reference](https://www.prisma.io/docs/orm/reference)
+- [Postman](https://www.postman.com/downloads/)
 
-Node - https://nodejs.org/en 
-Vscode Studio - https://code.visualstudio.com/ 
-Postgres download - https://www.postgresql.org/download/ 
-PgAdmin download - https://www.pgadmin.org/download/ 
-Prisma docs - https://www.prisma.io/docs/getting-st... 
-Prisma types - https://www.prisma.io/docs/orm/refere...
-Postman download - https://www.postman.com/downloads/  
+## 💻 Frontend Resources
+- [Next.js](https://nextjs.org/docs/app/getting-started)
+- [Redux Toolkit with Next.js](https://redux-toolkit.js.org/usage/nextjs)
+- [Redux Toolkit Query](https://redux-toolkit.js.org/rtk-query/overview)
+- [Next.js Context Providers](https://nextjs.org/docs/14/app/building-your-application)
+- [Tailwind CSS](https://tailwindcss.com/docs/theme)
+- [Recharts](https://recharts.org/en-US/api)
+- [MUI Data Grid](https://mui.com/x/react-data-grid/)
 
-## Links Frontend:
-
-Nextjs - https://nextjs.org/docs/getting-start... 
-Redux Toolkit w/ Nextjs - https://redux-toolkit.js.org/usage/ne... 
-Redux Toolkit Query - https://redux-toolkit.js.org/rtk-quer... 
-Nextjs and Context Providers - https://nextjs.org/docs/app/building-...
-Tailwind - https://tailwindcss.com/docs/configur... 
-Recharts - https://recharts.org/en-US/api 
-MUI - https://mui.com/x/react-data-grid/ 
-
-## Links AWS:
-
-AWS - https://aws.amazon.com/
-AWS CLI - https://docs.aws.amazon.com/cli/lates... 
-AWS Billing - https://us-east-1.console.aws.amazon.... 
-AWS Free Tier Subscription - https://aws.amazon.com/free/?all-free... 
-AWS IPv4 New Charge - https://aws.amazon.com/blogs/aws/new-... 
-AWS IPv4 Free Tier - https://aws.amazon.com/about-aws/what... 
-
-
+## ☁️ AWS Resources
+- [AWS](https://aws.amazon.com/)
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/)
+- [AWS Billing Console](https://us-east-1.console.aws.amazon.com/billing/home)
+- [AWS Free Tier](https://aws.amazon.com/free/)
+- [AWS IPv4 Charge Announcement](https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights/)
+- [AWS IPv4 Free Tier Details](https://aws.amazon.com/about-aws/whats-new/2024/02/aws-free-tier-750-hours-free-public-ipv4-addresses/)
 
 ## Deploy on Vercel
 

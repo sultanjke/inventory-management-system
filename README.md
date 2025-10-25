@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+This is a [Next.js](https://nextjs.org/), full-stack Inventory (Warehouse) Management Application using Next.js, Redux, Node, and AWS. Project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). 
 
 ## Getting Started
 
@@ -16,9 +16,7 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-# Below all the technologies provided with URL which was used to build this project.
-
-## 🔗 Backend Resources
+### 🔗 Backend Resources
 - [Node.js](https://nodejs.org/en)
 - [Visual Studio Code](https://code.visualstudio.com/)
 - [PostgreSQL](https://www.postgresql.org/download/)
@@ -27,7 +25,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - [Prisma Types Reference](https://www.prisma.io/docs/orm/reference)
 - [Postman](https://www.postman.com/downloads/)
 
-## 💻 Frontend Resources
+### 💻 Frontend Resources
 - [Next.js](https://nextjs.org/docs/app/getting-started)
 - [Redux Toolkit with Next.js](https://redux-toolkit.js.org/usage/nextjs)
 - [Redux Toolkit Query](https://redux-toolkit.js.org/rtk-query/overview)
@@ -36,7 +34,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - [Recharts](https://recharts.org/en-US/api)
 - [MUI Data Grid](https://mui.com/x/react-data-grid/)
 
-## ☁️ AWS Resources
+### ☁️ AWS Resources
 - [AWS](https://aws.amazon.com/)
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/)
 - [AWS Billing Console](https://us-east-1.console.aws.amazon.com/billing/home)
@@ -44,6 +42,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - [AWS IPv4 Charge Announcement](https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights/)
 - [AWS IPv4 Free Tier Details](https://aws.amazon.com/about-aws/whats-new/2024/02/aws-free-tier-750-hours-free-public-ipv4-addresses/)
 
-## Deploy on Vercel
+### Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

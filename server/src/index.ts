@@ -8,7 +8,7 @@ import morgan from "morgan";
 import dashboardRoutes from "./routes/dashboardRoutes";
 
 /* CONFIGURATIOSN */
-dotenv.config();
+dotenv.config({ quiet: true });
 const app = express();
 app.use(express.json());
 app.use(helmet());

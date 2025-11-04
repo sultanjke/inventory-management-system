@@ -109,6 +109,14 @@ const CardSalesSummary = () => {
                   formatter={(value: number) => [
                     `$${value.toLocaleString("en")}`,
                   ]}
+                  labelFormatter={(label) => {
+                  const date = new Date(label);
+                  return date.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  });
+                }}
                 />
                 <Bar
                   dataKey="totalValue"

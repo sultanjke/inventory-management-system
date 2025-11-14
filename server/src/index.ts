@@ -6,6 +6,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 /* ROUTE IMPORTS */
 import dashboardRoutes from "./routes/dashboardRoutes";
+import productRoutes from "./routes/productRoutes";
 
 /* CONFIGURATIOSN */
 dotenv.config({ quiet: true });
@@ -20,9 +21,10 @@ app.use(cors());
 
 /* ROUTES  */
 app.use("/dashboard", dashboardRoutes); // http://localhost:3001/dashboard
+app.use("/products", productRoutes); // http://localhost:3001/products
 
 /* SERVER */
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-}); 
+});

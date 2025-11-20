@@ -74,9 +74,9 @@ const Navbar = () => {
             <Image
               src="https://aws-s3-inventorymanagement-basicsofis.s3.eu-north-1.amazonaws.com/profile.jpg"
               alt="Profile"
-              width={50}
-              height={50}
-              className="rounded-full h-full object-cover"
+              width={30}
+              height={30}
+              className="rounded-xl h-full object-cover"
             />
           </div>
           <span className="font-bold">Sultan Mecheyev</span>

@@ -9,13 +9,13 @@ import { setIsDarkMode } from "@/state";
 type UserSetting = {
   label: string;
   value: string | boolean;
-  type: "text" | "toggle";
+  type: "text" | "toggle" | "image";
 };
 
 const mockSettings: UserSetting[] = [
+    { label: "Profile Picture", value: "", type: "image" },
     { label: "Username", value: "", type: "text" },
     { label: "Email", value: "", type: "text" },
-    { label: "Notification", value: true, type: "toggle" },
     { label: "Dark Mode", value: false, type: "toggle" },
 ]
 
@@ -33,8 +33,16 @@ const Settings = () => {
         if (user) {
             setUserSettings(prev => {
                 const newSettings = [...prev];
-                newSettings[0] = { ...newSettings[0], value: user.fullName || user.username || "" };
-                newSettings[1] = { ...newSettings[1], value: user.primaryEmailAddress?.emailAddress || "" };
+
+                const profilePicIndex = newSettings.findIndex(s => s.label === "Profile Picture");
+                if (profilePicIndex !== -1) newSettings[profilePicIndex] = { ...newSettings[profilePicIndex], value: user.imageUrl || "" };
+
+                const usernameIndex = newSettings.findIndex(s => s.label === "Username");
+                if (usernameIndex !== -1) newSettings[usernameIndex] = { ...newSettings[usernameIndex], value: user.fullName || user.username || "" };
+
+                const emailIndex = newSettings.findIndex(s => s.label === "Email");
+                if (emailIndex !== -1) newSettings[emailIndex] = { ...newSettings[emailIndex], value: user.primaryEmailAddress?.emailAddress || "" };
+
                 return newSettings;
             });
         }
@@ -62,6 +70,20 @@ const Settings = () => {
 
         settingsCopy[index].value = !settingsCopy[index].value as boolean;
         setUserSettings(settingsCopy);
+    }
+
+    const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user) return;
+
+        try {
+            await user.setProfileImage({ file });
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (err) {
+            console.error("Error updating profile picture:", err);
+            alert("Failed to update profile picture");
+        }
     }
 
     const handleSave = async () => {
@@ -158,7 +180,24 @@ const Settings = () => {
 
                         </div>
                     </label>
-                  ): (
+                  ) : setting.type === "image" ? (
+                    <div className="flex items-center gap-4">
+                        <img
+                            src={setting.value as string}
+                            alt="Profile"
+                            className="w-12 h-12 rounded-xl object-cover border border-gray-300"
+                        />
+                        <label className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded transition-colors text-sm">
+                            Upload New
+                            <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleProfilePictureUpload}
+                            />
+                        </label>
+                    </div>
+                  ) : (
                     <input type="text"
                     className={`px-4 py-2 border rounded-lg text-gray-500 focus:outline-none focus:border-blue-500 ${setting.label === "Email" ? "bg-gray-100 cursor-not-allowed" : ""}`}
                     value={setting.value as string}

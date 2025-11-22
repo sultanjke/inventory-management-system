@@ -5,5 +5,3 @@ server/dist/
 client/.env/
 server/.env/
 client/.next/
-client/.clerk/
-client/.env.local

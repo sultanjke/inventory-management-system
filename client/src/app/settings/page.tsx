@@ -91,7 +91,7 @@ const Settings = () => {
             setPasswordError("New passwords do not match");
             return;
         }
-        
+
         if (passwordData.newPassword.length < 8) {
              setPasswordError("Password must be at least 8 characters long");
              return;
@@ -179,13 +179,13 @@ const Settings = () => {
       </div>
       <div className="mt-5 flex justify-between items-center">
         <div className="flex gap-4">
-            <button 
+            <button
                 onClick={handleSave}
                 className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
             >
                 Save Changes
             </button>
-            <button 
+            <button
                 onClick={() => setIsPasswordModalOpen(true)}
                 className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors"
             >
@@ -205,21 +205,21 @@ const Settings = () => {
                 <div className="bg-white p-6 rounded-lg shadow-xl w-96">
                     <h2 className="text-xl font-bold mb-4">Change Password</h2>
                     {passwordError && <p className="text-red-500 text-sm mb-2">{passwordError}</p>}
-                    
+
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                        <input 
-                            type="password" 
+                        <input
+                            type="password"
                             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                             value={passwordData.currentPassword}
                             onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
                         />
                     </div>
-                    
+
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                        <input 
-                            type="password" 
+                        <input
+                            type="password"
                             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                             value={passwordData.newPassword}
                             onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
@@ -228,8 +228,8 @@ const Settings = () => {
 
                     <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                        <input 
-                            type="password" 
+                        <input
+                            type="password"
                             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                             value={passwordData.confirmPassword}
                             onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
@@ -237,7 +237,7 @@ const Settings = () => {
                     </div>
 
                     <div className="flex justify-end gap-2">
-                        <button 
+                        <button
                             onClick={() => {
                                 setIsPasswordModalOpen(false);
                                 setPasswordError("");
@@ -247,7 +247,7 @@ const Settings = () => {
                         >
                             Cancel
                         </button>
-                        <button 
+                        <button
                             onClick={handlePasswordChange}
                             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                         >

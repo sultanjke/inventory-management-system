@@ -8,6 +8,10 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Stockify",
+  description: "Inventory Management System",
+  icons: {
+    icon: "https://aws-s3-inventorymanagement-basicsofis.s3.eu-north-1.amazonaws.com/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -16,10 +20,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        layout: {
+          unsafe_disableDevelopmentModeWarnings: true,
+        },
+      }}
+    >
       <html lang="en">
         <body className={inter.className}>
-          <DashboardWrapper>{children}</DashboardWrapper></body>
+          <DashboardWrapper>{children}</DashboardWrapper>
+        </body>
       </html>
     </ClerkProvider>
   );

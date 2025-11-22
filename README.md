@@ -34,6 +34,7 @@ The project also includes a comprehensive deployment strategy using **AWS** serv
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **Components:** [Material UI](https://mui.com/) (Data Grid, Base components)
 - **State Management:** [Redux Toolkit](https://redux-toolkit.js.org/) & [RTK Query](https://redux-toolkit.js.org/rtk-query/overview)
+- **Authentication:** [Clerk](https://clerk.com/)
 - **Icons:** Lucide React
 - **Charts:** Recharts
 - **Utilities:** Numeral.js, UUID, Axios
@@ -57,6 +58,9 @@ The project also includes a comprehensive deployment strategy using **AWS** serv
 ## Features
 
 - **Dashboard:** Real-time overview of sales, purchases, expenses, and popular products.
+- **Authentication:** Secure Sign-in/Sign-up with Clerk, including route protection.
+- **User Management:** Admin-controlled user list with deletion capabilities.
+- **Profile Settings:** Update user details, change passwords, and upload profile pictures.
 - **Product Management:** Create new products, view ratings, and pricing.
 - **Expense Tracking:** Categorized expense views and summaries.
 
@@ -112,6 +116,12 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
 Create a `.env.local` file in the `client` directory:
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 ```
 
 ### Database Setup

@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { useUser } from "@clerk/nextjs";
 
 interface SidebarLinkProps {
   href: string;
@@ -51,6 +52,7 @@ const SidebarLink = ({
 };
 
 const Sidebar = () => {
+  const { user } = useUser();
   const dispatch = useAppDispatch();
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed
@@ -63,6 +65,8 @@ const Sidebar = () => {
   const sidebarClassNames = `fixed flex flex-col ${
     isSidebarCollapsed ? "w-0 md:w-16" : "w-72 md:w-64"
   } bg-white transition-all duration-300 overflow-hidden h-full shadow-md z-40`;
+
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === "s.mecheyev@outlook.com" || user?.fullName === "Sultan Mecheyev";
 
   return (
     <div className={sidebarClassNames}>
@@ -117,12 +121,14 @@ const Sidebar = () => {
           label="Products"
           isCollapsed={isSidebarCollapsed}
         />
-        <SidebarLink
-          href="/users"
-          icon={Users}
-          label="Users"
-          isCollapsed={isSidebarCollapsed}
-        />
+        {isAdmin && (
+          <SidebarLink
+            href="/users"
+            icon={Users}
+            label="Users"
+            isCollapsed={isSidebarCollapsed}
+          />
+        )}
         <SidebarLink
           href="/settings"
           icon={SlidersHorizontal}

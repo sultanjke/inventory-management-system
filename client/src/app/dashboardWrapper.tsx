@@ -4,9 +4,10 @@ import React, { useEffect } from "react";
 import Navbar from "@/app/(components)/Navbar";
 import Sidebar from "@/app/(components)/Sidebar";
 import StoreProvider, { useAppSelector } from "./redux";
+import { usePathname } from "next/navigation";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-
+  const pathname = usePathname();
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed
   );
@@ -19,6 +20,20 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       document.documentElement.classList.add("light");
     }
   });
+
+  const isAuthPage = pathname === "/" || pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up");
+
+  if (isAuthPage) {
+    return (
+      <div
+        className={`${
+          isDarkMode ? "dark" : "light"
+        } flex flex-col bg-gray-50 text-gray-900 w-full min-h-screen`}
+      >
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div

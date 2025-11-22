@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Header from '@/app/(components)/Header';
+import { useUser, SignOutButton } from "@clerk/nextjs";
+import { useAppDispatch, useAppSelector } from "@/app/redux";
+import { setIsDarkMode } from "@/state";
 
 type UserSetting = {
   label: string;
@@ -10,24 +13,122 @@ type UserSetting = {
 };
 
 const mockSettings: UserSetting[] = [
-    { label: "Username", value: "s.mecheyev", type: "text" },
-    { label: "Email Notifications", value: 's.mecheyev@outlook.com', type: "text" },
+    { label: "Username", value: "", type: "text" },
+    { label: "Email", value: "", type: "text" },
     { label: "Notification", value: true, type: "toggle" },
     { label: "Dark Mode", value: false, type: "toggle" },
-    { label: "Language", value: "English", type: "text" },
 ]
 
 const Settings = () => {
+    const { user, isLoaded } = useUser();
+    const dispatch = useAppDispatch();
+    const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
     const [userSettings, setUserSettings] = useState<UserSetting[]>(mockSettings);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    const [passwordError, setPasswordError] = useState("");
+
+    useEffect(() => {
+        if (user) {
+            setUserSettings(prev => {
+                const newSettings = [...prev];
+                newSettings[0] = { ...newSettings[0], value: user.fullName || user.username || "" };
+                newSettings[1] = { ...newSettings[1], value: user.primaryEmailAddress?.emailAddress || "" };
+                return newSettings;
+            });
+        }
+    }, [user]);
+
+    useEffect(() => {
+        setUserSettings(prev => {
+            const newSettings = [...prev];
+            const darkModeIndex = newSettings.findIndex(s => s.label === "Dark Mode");
+            if (darkModeIndex !== -1) {
+                newSettings[darkModeIndex] = { ...newSettings[darkModeIndex], value: isDarkMode };
+            }
+            return newSettings;
+        });
+    }, [isDarkMode]);
 
     const handleToggleChange = (index: number) => {
         const settingsCopy = [...userSettings];
+        const setting = settingsCopy[index];
+
+        if (setting.label === "Dark Mode") {
+            dispatch(setIsDarkMode(!setting.value));
+            return;
+        }
+
         settingsCopy[index].value = !settingsCopy[index].value as boolean;
         setUserSettings(settingsCopy);
     }
 
+    const handleSave = async () => {
+        if (!user) return;
+        const usernameSetting = userSettings.find(s => s.label === "Username");
+
+        if (usernameSetting && typeof usernameSetting.value === 'string') {
+            const [firstName, ...lastNameParts] = usernameSetting.value.split(' ');
+            const lastName = lastNameParts.join(' ');
+
+            try {
+                await user.update({
+                    firstName: firstName,
+                    lastName: lastName
+                });
+                setShowSuccess(true);
+                setTimeout(() => setShowSuccess(false), 3000);
+            } catch (err) {
+                console.error("Error updating profile:", err);
+                alert("Failed to update profile");
+            }
+        }
+    }
+
+    const handlePasswordChange = async () => {
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            setPasswordError("New passwords do not match");
+            return;
+        }
+        
+        if (passwordData.newPassword.length < 8) {
+             setPasswordError("Password must be at least 8 characters long");
+             return;
+        }
+
+        if (!user) return;
+
+        try {
+            await user.updatePassword({
+                newPassword: passwordData.newPassword,
+                currentPassword: passwordData.currentPassword
+            });
+            setIsPasswordModalOpen(false);
+            setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+            setPasswordError("");
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (err: any) {
+            console.error("Error updating password:", err);
+            setPasswordError(err.errors?.[0]?.message || "Failed to update password. Check current password.");
+        }
+    }
+
+    if (!isLoaded) return <div>Loading...</div>;
+
   return (
     <div className="w-full">
+        {showSuccess && (
+            <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-white border border-green-500 text-green-700 px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 transition-all duration-500 ease-in-out">
+                <div className="bg-green-100 p-1 rounded-full">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <span className="font-medium">Profile updated successfully!</span>
+            </div>
+        )}
       <Header name="User Settings" />
       <div className="overflow-x-auto mt-5 shadow-md">
         <table className="min-w-full bg-white rounded-lg">
@@ -59,9 +160,11 @@ const Settings = () => {
                     </label>
                   ): (
                     <input type="text"
-                    className="px-4 py-2 border rounded-lg text-gray-500 focus:outline-none focus:border-blue-500"
+                    className={`px-4 py-2 border rounded-lg text-gray-500 focus:outline-none focus:border-blue-500 ${setting.label === "Email" ? "bg-gray-100 cursor-not-allowed" : ""}`}
                     value={setting.value as string}
+                    readOnly={setting.label === "Email"}
                     onChange={(e) => {
+                      if (setting.label === "Email") return;
                       const settingsCopy = [...userSettings];
                       settingsCopy[index].value = e.target.value;
                       setUserSettings(settingsCopy);
@@ -74,6 +177,86 @@ const Settings = () => {
           </tbody>
         </table>
       </div>
+      <div className="mt-5 flex justify-between items-center">
+        <div className="flex gap-4">
+            <button 
+                onClick={handleSave}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
+            >
+                Save Changes
+            </button>
+            <button 
+                onClick={() => setIsPasswordModalOpen(true)}
+                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors"
+            >
+                Change Password
+            </button>
+        </div>
+
+        <SignOutButton>
+            <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors">
+                Sign Out
+            </button>
+        </SignOutButton>
+      </div>
+
+        {isPasswordModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-xl w-96">
+                    <h2 className="text-xl font-bold mb-4">Change Password</h2>
+                    {passwordError && <p className="text-red-500 text-sm mb-2">{passwordError}</p>}
+                    
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                        <input 
+                            type="password" 
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                            value={passwordData.currentPassword}
+                            onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                        />
+                    </div>
+                    
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                        <input 
+                            type="password" 
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                            value={passwordData.newPassword}
+                            onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                        />
+                    </div>
+
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                        <input 
+                            type="password" 
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                        <button 
+                            onClick={() => {
+                                setIsPasswordModalOpen(false);
+                                setPasswordError("");
+                                setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                            }}
+                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={handlePasswordChange}
+                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                            Update Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
   )
 }

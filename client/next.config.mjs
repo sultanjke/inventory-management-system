@@ -8,6 +8,12 @@ const nextConfig = {
                 hostname: "aws-s3-inventorymanagement-basicsofis.s3.eu-north-1.amazonaws.com",
                 port: "",
                 pathname: "/**"
+            },
+            {
+                protocol: "https",
+                hostname: "img.clerk.com",
+                port: "",
+                pathname: "/**"
             }
         ]
     }

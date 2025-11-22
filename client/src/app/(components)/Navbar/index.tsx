@@ -6,9 +6,10 @@ import { Bell, Menu, Moon, Settings, Sun } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { useUser } from "@clerk/nextjs";
 
 const Navbar = () => {
-
+  const { user, isLoaded } = useUser();
   const dispatch = useAppDispatch();
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed
@@ -23,6 +24,9 @@ const Navbar = () => {
   const toggleDarkMode = () => {
     dispatch(setIsDarkMode(!isDarkMode));
   }
+
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === "s.mecheyev@outlook.com" || user?.fullName === "Sultan Mecheyev";
+  const notificationCount = isLoaded && user ? (isAdmin ? 2 : 1) : 0;
 
   return (
     <div className="flex justify-between items-center w-full mb-7">
@@ -64,22 +68,24 @@ const Navbar = () => {
             </button>
           </div>
           <div className="relative">
-            <Bell className="cursor-pointer text-gray-500" size={24} />
-            <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-[0.4rem] py-1 text-xs font-semibold leading-none text-red-100 bg-red-400 rounded-full">
-              3
-            </span>
+            <Link href="/notifications">
+              <Bell className="cursor-pointer text-gray-500" size={24} />
+              <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-[0.4rem] py-1 text-xs font-semibold leading-none text-red-100 bg-red-400 rounded-full">
+                {notificationCount}
+              </span>
+            </Link>
           </div>
           <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" />
           <div className="flex items-center gap-3 cursor-pointer">
             <Image
-              src="https://aws-s3-inventorymanagement-basicsofis.s3.eu-north-1.amazonaws.com/profile.jpg"
+              src={user?.imageUrl || "https://aws-s3-inventorymanagement-basicsofis.s3.eu-north-1.amazonaws.com/profile.jpg"}
               alt="Profile"
               width={30}
               height={30}
               className="rounded-xl h-full object-cover"
             />
           </div>
-          <span className="font-bold">Sultan Mecheyev</span>
+          <span className="font-bold">{user?.fullName || "Sultan Mecheyev"}</span>
         </div>
         <Link href="/settings">
           <Settings className="cursor-pointer text-gray-500" size={24} />

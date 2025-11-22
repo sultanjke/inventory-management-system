@@ -78,14 +78,14 @@ const Navbar = () => {
           <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" />
           <div className="flex items-center gap-3 cursor-pointer">
             <Image
-              src={user?.imageUrl || "https://aws-s3-inventorymanagement-basicsofis.s3.eu-north-1.amazonaws.com/profile.jpg"}
+              src={user?.imageUrl || "N/A"}
               alt="Profile"
               width={30}
               height={30}
               className="rounded-xl h-full object-cover"
             />
           </div>
-          <span className="font-bold">{user?.fullName || "Sultan Mecheyev"}</span>
+          <span className="font-bold">{user?.fullName}</span>
         </div>
         <Link href="/settings">
           <Settings className="cursor-pointer text-gray-500" size={24} />

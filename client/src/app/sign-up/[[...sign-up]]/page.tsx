@@ -17,7 +17,14 @@ export default function Page() {
           Stockify
         </h1>
       </div>
-      <SignUp />
+      <SignUp
+        appearance={{
+          elements: {
+            formButtonPrimary:
+              "bg-blue-500 hover:bg-blue-600 text-black !shadow-none",
+          },
+        }}
+      />
     </div>
   );
 }

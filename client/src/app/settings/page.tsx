@@ -154,7 +154,7 @@ const Settings = () => {
       <Header name="User Settings" />
       <div className="overflow-x-auto mt-5 shadow-md">
         <table className="min-w-full bg-white rounded-lg">
-          <thead className="bg-gray-800 text-white">
+          <thead className="">
             <tr>
               <th className="text-left py-3 px-4 uppercase font-semibold text-sm">
                 Setting
@@ -199,7 +199,7 @@ const Settings = () => {
                     </div>
                   ) : (
                     <input type="text"
-                    className={`px-4 py-2 border rounded-lg text-gray-500 focus:outline-none focus:border-blue-500 ${setting.label === "Email" ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                    className={`px-4 py-2 border rounded-lg text-gray-500 focus:outline-none focus:border-blue-500 ${setting.label === "Email" ? "bg-gray-100 cursor-not-allowed" : "bg-white dark:bg-gray-100"}`}
                     value={setting.value as string}
                     readOnly={setting.label === "Email"}
                     onChange={(e) => {
@@ -220,20 +220,20 @@ const Settings = () => {
         <div className="flex gap-4">
             <button
                 onClick={handleSave}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
+                className="bg-blue-500 hover:bg-blue-600 text-black font-bold py-2 px-4 rounded transition-colors"
             >
                 Save Changes
             </button>
             <button
                 onClick={() => setIsPasswordModalOpen(true)}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors"
+                className="bg-gray-500 hover:bg-gray-600 text-black font-bold py-2 px-4 rounded transition-colors"
             >
                 Change Password
             </button>
         </div>
 
         <SignOutButton>
-            <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors">
+            <button className="bg-red-500 hover:bg-red-600 text-black font-bold py-2 px-4 rounded transition-colors">
                 Sign Out
             </button>
         </SignOutButton>

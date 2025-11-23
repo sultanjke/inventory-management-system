@@ -78,7 +78,7 @@ const Navbar = () => {
           <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" />
           <div className="flex items-center gap-3 cursor-pointer">
             <Image
-              src={user?.imageUrl || "N/A"}
+              src={user?.imageUrl || "/server/assets/user.png"}
               alt="Profile"
               width={30}
               height={30}

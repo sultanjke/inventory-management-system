@@ -156,7 +156,8 @@ Open [http://localhost:3000](http://localhost:8000) to view the application.
 ## Deployment
 
 ### AWS Cloud Architecture
-<img width="806" height="588" alt="Screenshot 2025-11-21 011317" src="https://github.com/user-attachments/assets/4e8de783-665d-444a-8050-49ce5e665f31" />
+
+<img width="816" height="520" alt="Frame 1" src="https://github.com/user-attachments/assets/64ef3af8-b6f2-4d27-8afc-fbc8ee3dbeb9" />
 
 ### AWS Deployment Strategy
 

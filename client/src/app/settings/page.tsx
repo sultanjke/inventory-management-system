@@ -220,20 +220,20 @@ const Settings = () => {
         <div className="flex gap-4">
             <button
                 onClick={handleSave}
-                className="bg-blue-500 hover:bg-blue-600 text-black font-bold py-2 px-4 rounded transition-colors"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
             >
                 Save Changes
             </button>
             <button
                 onClick={() => setIsPasswordModalOpen(true)}
-                className="bg-gray-500 hover:bg-gray-600 text-black font-bold py-2 px-4 rounded transition-colors"
+                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors"
             >
                 Change Password
             </button>
         </div>
 
         <SignOutButton>
-            <button className="bg-red-500 hover:bg-red-600 text-black font-bold py-2 px-4 rounded transition-colors">
+            <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors">
                 Sign Out
             </button>
         </SignOutButton>

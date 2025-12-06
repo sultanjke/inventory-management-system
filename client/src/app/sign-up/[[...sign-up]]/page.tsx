@@ -21,7 +21,7 @@ export default function Page() {
         appearance={{
           elements: {
             formButtonPrimary:
-              "bg-blue-500 hover:bg-blue-600 text-black !shadow-none",
+              "bg-blue-500 hover:bg-blue-600 text-white !shadow-none",
           },
         }}
       />

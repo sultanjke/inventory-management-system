@@ -11,7 +11,9 @@ import React, {
 export type Locale = "en" | "ru";
 
 type TranslationValue = string | TranslationDictionary;
-type TranslationDictionary = Record<string, TranslationValue>;
+interface TranslationDictionary {
+  [key: string]: TranslationValue;
+}
 type TemplateVars = Record<string, string | number>;
 
 type TranslationContextValue = {

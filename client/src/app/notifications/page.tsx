@@ -3,12 +3,15 @@
 import { useUser } from "@clerk/nextjs";
 import Header from "@/app/(components)/Header";
 import React from "react";
+import { useTranslation } from "@/i18n";
 
 const Notifications = () => {
   const { user, isLoaded } = useUser();
+  const { t, locale } = useTranslation();
+  const dateLocale = locale === "ru" ? "ru-RU" : "en-US";
 
   if (!isLoaded || !user) {
-    return <div className="py-4">Loading...</div>;
+    return <div className="py-4">{t("common.loading")}</div>;
   }
 
   const isAdmin =
@@ -16,23 +19,22 @@ const Notifications = () => {
     user?.fullName === "Sultan Mecheyev";
 
   const createdDate = user.createdAt
-    ? new Date(user.createdAt).toLocaleDateString()
-    : "Unknown date";
+    ? new Date(user.createdAt).toLocaleDateString(dateLocale)
+    : t("common.unknownDate");
 
   return (
     <div className="w-full">
-      <Header name="Notifications" />
+      <Header name={t("notifications.title")} />
       <div className="mt-5 flex flex-col gap-4">
         {/* Registration Notification */}
         <div className="bg-white shadow rounded-lg p-4 border-l-4 border-blue-500">
           <div className="flex justify-between items-center">
             <div>
               <h3 className="font-semibold text-lg text-gray-800">
-                Welcome to Stockify!
+                {t("notifications.welcomeTitle")}
               </h3>
               <p className="text-gray-600 mt-1">
-                You successfully registered on {createdDate}. We are glad to have
-                you here.
+                {t("notifications.welcomeBody", { date: createdDate })}
               </p>
             </div>
           </div>
@@ -44,11 +46,10 @@ const Notifications = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="font-semibold text-lg text-gray-800">
-                  Admin Access Granted
+                  {t("notifications.adminTitle")}
                 </h3>
                 <p className="text-gray-600 mt-1">
-                  You have been granted admin privileges. You now have access to
-                  the Users page.
+                  {t("notifications.adminBody")}
                 </p>
               </div>
             </div>

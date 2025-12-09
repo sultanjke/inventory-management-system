@@ -10,10 +10,14 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTranslation } from "@/i18n";
 
 const CardSalesSummary = () => {
   const { data, isLoading, isError } = useGetDashboardMetricsQuery();
   const salesData = data?.salesSummary || [];
+  const { t, locale } = useTranslation();
+  const dateLocale = locale === "ru" ? "ru-RU" : "en-US";
+  const millionSuffix = locale === "ru" ? "млн" : "m";
 
   const [timeframe, setTimeframe] = useState("weekly");
 
@@ -30,27 +34,27 @@ const CardSalesSummary = () => {
   }, salesData[0] || {});
 
   const highestValueDate = highestValueData.date
-    ? new Date(highestValueData.date).toLocaleDateString("en-US", {
+    ? new Date(highestValueData.date).toLocaleDateString(dateLocale, {
         month: "numeric",
         day: "numeric",
         year: "2-digit",
       })
-    : "N/A";
+    : t("common.unknownDate");
 
   if (isError) {
-    return <div className="m-5">Failed to fetch data</div>;
+    return <div className="m-5">{t("common.failedToFetch")}</div>;
   }
 
   return (
     <div className="row-span-3 xl:row-span-6 bg-white shadow-md rounded-2xl flex flex-col justify-between">
       {isLoading ? (
-        <div className="m-5">Loading...</div>
+        <div className="m-5">{t("common.loading")}</div>
       ) : (
         <>
           {/* HEADER */}
           <div>
             <h2 className="text-lg font-semibold mb-2 px-7 pt-5">
-              Sales Summary
+              {t("dashboard.salesSummaryTitle")}
             </h2>
             <hr />
           </div>
@@ -59,13 +63,15 @@ const CardSalesSummary = () => {
             {/* BODY HEADER */}
             <div className="flex justify-between items-center mb-6 px-7 mt-5">
               <div className="text-lg font-medium">
-                <p className="text-xs text-gray-400">Value</p>
+                <p className="text-xs text-gray-400">
+                  {t("dashboard.valueLabel")}
+                </p>
                 <span className="text-2xl font-extrabold">
                   $
-                  {(totalValueSum / 1000000).toLocaleString("en", {
+                  {(totalValueSum / 1000000).toLocaleString(locale, {
                     maximumFractionDigits: 2,
                   })}
-                  m
+                  {millionSuffix}
                 </span>
                 <span className="text-green-500 text-sm ml-2">
                   <TrendingUp className="inline w-4 h-4 mr-1" />
@@ -79,9 +85,11 @@ const CardSalesSummary = () => {
                   setTimeframe(e.target.value);
                 }}
               >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
+                <option value="daily">{t("dashboard.timeframeDaily")}</option>
+                <option value="weekly">{t("dashboard.timeframeWeekly")}</option>
+                <option value="monthly">
+                  {t("dashboard.timeframeMonthly")}
+                </option>
               </select>
             </div>
             {/* CHART */}
@@ -100,7 +108,9 @@ const CardSalesSummary = () => {
                 />
                 <YAxis
                   tickFormatter={(value) => {
-                    return `$${(value / 1000000).toFixed(0)}m`;
+                    return `$${(value / 1000000).toLocaleString(locale, {
+                      maximumFractionDigits: 0,
+                    })}${millionSuffix}`;
                   }}
                   tick={{ fontSize: 12, dx: -1 }}
                   tickLine={false}
@@ -108,11 +118,11 @@ const CardSalesSummary = () => {
                 />
                 <Tooltip
                   formatter={(value: number) => [
-                    `$${value.toLocaleString("en")}`,
+                    `$${value.toLocaleString(locale)}`,
                   ]}
                   labelFormatter={(label) => {
                   const date = new Date(label);
-                  return date.toLocaleDateString("en-US", {
+                  return date.toLocaleDateString(dateLocale, {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -132,10 +142,9 @@ const CardSalesSummary = () => {
           <div>
             <hr />
             <div className="flex justify-between items-center text-sm px-7 mb-5 mt-5">
-              <p>{salesData.length || 0} days</p>
+              <p>{t("common.daysLabel", { count: salesData.length || 0 })}</p>
               <p className="text-sm">
-                Highest Sales Date:{" "}
-                <span className="font-bold">{highestValueDate}</span>
+                {t("common.highestSalesDate", { date: highestValueDate })}
               </p>
             </div>
           </div>

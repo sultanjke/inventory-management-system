@@ -3,50 +3,69 @@
 import { useGetProductsQuery } from "@/state/api";
 import Header from "@/app/(components)/Header";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-
-const columns: GridColDef[] = [
-  { field: "productId", headerName: "ID", width: 90 },
-  { field: "name", headerName: "Product Name", width: 200 },
-  {
-    field: "price",
-    headerName: "Price",
-    width: 110,
-    type: "number",
-    valueGetter: (value, row) => `$${row.price}`,
-  },
-  {
-    field: "rating",
-    headerName: "Rating",
-    width: 110,
-    type: "number",
-    valueGetter: (value, row) => (row.rating ? row.rating : "N/A"),
-  },
-  {
-    field: "stockQuantity",
-    headerName: "Stock Quantity",
-    width: 150,
-    type: "number",
-  },
-];
+import { useMemo } from "react";
+import { useTranslation } from "@/i18n";
 
 const Inventory = () => {
+  const { t, locale } = useTranslation();
   const { data: products, isError, isLoading } = useGetProductsQuery();
+  const currencyFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US", {
+        style: "currency",
+        currency: "USD",
+      }),
+    [locale]
+  );
+
+  const columns: GridColDef[] = useMemo(
+    () => [
+      { field: "productId", headerName: t("common.id"), width: 90 },
+      {
+        field: "name",
+        headerName: t("inventory.columns.productName"),
+        width: 200,
+      },
+      {
+        field: "price",
+        headerName: t("common.price"),
+        width: 110,
+        type: "number",
+        valueGetter: (_value, row) => currencyFormatter.format(row.price),
+      },
+      {
+        field: "rating",
+        headerName: t("common.rating"),
+        width: 110,
+        type: "number",
+        valueGetter: (_value, row) =>
+          row.rating ? row.rating : t("common.notAvailable"),
+      },
+      {
+        field: "stockQuantity",
+        headerName: t("inventory.columns.stockQuantity"),
+        width: 150,
+        type: "number",
+      },
+    ],
+    [currencyFormatter, t]
+  );
 
   if (isLoading) {
-    return <div className="py-4">Loading...</div>;
+    return <div className="py-4">{t("common.loading")}</div>;
   }
 
   if (isError || !products) {
     return (
       <div className="text-center text-red-500 py-4">
-        Failed to fetch products
+        {t("inventory.error")}
       </div>
     );
   }
 
   return (
     <div className="flex flex-col">
-      <Header name="Inventory" />
+      <Header name={t("inventory.title")} />
       <DataGrid
         rows={products}
         columns={columns}

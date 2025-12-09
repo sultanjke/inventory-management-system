@@ -7,16 +7,19 @@ import { getClerkUsers, deleteClerkUser } from "./actions";
 import { useUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "@/i18n";
+import { useMemo } from "react";
 
 const Users = () => {
   const { user, isLoaded } = useUser();
+  const { t } = useTranslation();
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleDelete = async (userId: string) => {
-    if (confirm("Are you sure you want to delete this user?")) {
+    if (confirm(t("users.confirmDelete"))) {
       try {
         await deleteClerkUser(userId);
         setUsers(users.filter((u) => u.userId !== userId));
@@ -28,24 +31,27 @@ const Users = () => {
     }
   };
 
-  const columns: GridColDef[] = [
-    { field: "userId", headerName: "ID", width: 90 },
-    { field: "name", headerName: "Name", width: 200 },
-    { field: "email", headerName: "Email", width: 200 },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 100,
-      renderCell: (params) => (
-        <button
-          onClick={() => handleDelete(params.row.userId)}
-          className="flex items-center justify-center w-full h-full text-red-500 hover:text-red-700"
-        >
-          <Trash2 size={20} />
-        </button>
-      ),
-    },
-  ];
+  const columns: GridColDef[] = useMemo(
+    () => [
+      { field: "userId", headerName: t("users.columns.id"), width: 90 },
+      { field: "name", headerName: t("users.columns.name"), width: 200 },
+      { field: "email", headerName: t("users.columns.email"), width: 200 },
+      {
+        field: "actions",
+        headerName: t("users.columns.actions"),
+        width: 100,
+        renderCell: (params) => (
+          <button
+            onClick={() => handleDelete(params.row.userId)}
+            className="flex items-center justify-center w-full h-full text-red-500 hover:text-red-700"
+          >
+            <Trash2 size={20} />
+          </button>
+        ),
+      },
+    ],
+    [t]
+  );
 
   useEffect(() => {
     if (isLoaded) {
@@ -73,12 +79,14 @@ const Users = () => {
   }, []);
 
   if (!isLoaded || isLoading) {
-    return <div className="py-4">Loading...</div>;
+    return <div className="py-4">{t("common.loading")}</div>;
   }
 
   if (isError) {
     return (
-      <div className="text-center text-red-500 py-4">Failed to fetch users</div>
+      <div className="text-center text-red-500 py-4">
+        {t("users.error")}
+      </div>
     );
   }
 
@@ -91,10 +99,10 @@ const Users = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                 </div>
-                <span className="font-medium">User deleted successfully!</span>
+                <span className="font-medium">{t("users.success")}</span>
             </div>
         )}
-      <Header name="Users" />
+      <Header name={t("users.title")} />
       <DataGrid
         rows={users}
         columns={columns}

@@ -12,23 +12,26 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTranslation } from "@/i18n";
 
 const CardPurchaseSummary = () => {
   const { data, isLoading } = useGetDashboardMetricsQuery();
   const purchaseData = data?.purchaseSummary || [];
+  const { t, locale } = useTranslation();
+  const dateLocale = locale === "ru" ? "ru-RU" : "en-US";
 
   const lastDataPoint = purchaseData[purchaseData.length - 1] || null;
 
   return (
     <div className="flex flex-col justify-between row-span-2 xl:row-span-3 col-span-1 md:col-span-2 xl:col-span-1 bg-white shadow-md rounded-2xl">
       {isLoading ? (
-        <div className="m-5">Loading...</div>
+        <div className="m-5">{t("common.loading")}</div>
       ) : (
         <>
           {/* HEADER */}
           <div>
             <h2 className="text-lg font-semibold mb-2 px-7 pt-5">
-              Purchase Summary
+              {t("dashboard.purchaseSummaryTitle")}
             </h2>
             <hr />
           </div>
@@ -37,7 +40,9 @@ const CardPurchaseSummary = () => {
           <div>
             {/* BODY HEADER */}
             <div className="mb-4 mt-7 px-7">
-              <p className="text-xs text-gray-400">Purchased</p>
+              <p className="text-xs text-gray-400">
+                {t("dashboard.purchasedLabel")}
+              </p>
               <div className="flex items-center ">
                 <p className="text-2xl font-bold">
                   {lastDataPoint
@@ -72,11 +77,11 @@ const CardPurchaseSummary = () => {
                 <YAxis tickLine={false} tick={false} axisLine={false} />
                 <Tooltip
                   formatter={(value: number) => [
-                    `$${value.toLocaleString("en")}`,
+                    `$${value.toLocaleString(locale)}`,
                   ]}
                   labelFormatter={(label) => {
                   const date = new Date(label);
-                  return date.toLocaleDateString("en-US", {
+                  return date.toLocaleDateString(dateLocale, {
                     year: "numeric",
                     month: "long",
                     day: "numeric",

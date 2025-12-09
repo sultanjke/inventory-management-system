@@ -1,74 +1,76 @@
 "use client";
 
-import React, { useState, useEffect } from 'react'
-import Header from '@/app/(components)/Header';
+import React, { useEffect, useMemo, useState } from "react";
+import Header from "@/app/(components)/Header";
 import { useUser, SignOutButton } from "@clerk/nextjs";
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsDarkMode } from "@/state";
+import { useTranslation } from "@/i18n";
 
+type UserSettingKey = "profilePicture" | "username" | "email" | "darkMode";
 type UserSetting = {
+  key: UserSettingKey;
   label: string;
   value: string | boolean;
   type: "text" | "toggle" | "image";
 };
 
-const mockSettings: UserSetting[] = [
-    { label: "Profile Picture", value: "", type: "image" },
-    { label: "Username", value: "", type: "text" },
-    { label: "Email", value: "", type: "text" },
-    { label: "Dark Mode", value: false, type: "toggle" },
-]
-
 const Settings = () => {
     const { user, isLoaded } = useUser();
     const dispatch = useAppDispatch();
     const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
-    const [userSettings, setUserSettings] = useState<UserSetting[]>(mockSettings);
+    const { t } = useTranslation();
+    const userSettingOptions = useMemo<UserSetting[]>(
+      () => [
+        {
+          key: "profilePicture",
+          label: t("settings.fields.profilePicture"),
+          value: user?.imageUrl || "",
+          type: "image",
+        },
+        {
+          key: "username",
+          label: t("settings.fields.username"),
+          value: user?.fullName || user?.username || "",
+          type: "text",
+        },
+        {
+          key: "email",
+          label: t("settings.fields.email"),
+          value: user?.primaryEmailAddress?.emailAddress || "",
+          type: "text",
+        },
+        {
+          key: "darkMode",
+          label: t("settings.fields.darkMode"),
+          value: isDarkMode,
+          type: "toggle",
+        },
+      ],
+      [isDarkMode, t, user]
+    );
+    const [userSettings, setUserSettings] = useState<UserSetting[]>(userSettingOptions);
     const [showSuccess, setShowSuccess] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
     const [passwordError, setPasswordError] = useState("");
 
     useEffect(() => {
-        if (user) {
-            setUserSettings(prev => {
-                const newSettings = [...prev];
-
-                const profilePicIndex = newSettings.findIndex(s => s.label === "Profile Picture");
-                if (profilePicIndex !== -1) newSettings[profilePicIndex] = { ...newSettings[profilePicIndex], value: user.imageUrl || "" };
-
-                const usernameIndex = newSettings.findIndex(s => s.label === "Username");
-                if (usernameIndex !== -1) newSettings[usernameIndex] = { ...newSettings[usernameIndex], value: user.fullName || user.username || "" };
-
-                const emailIndex = newSettings.findIndex(s => s.label === "Email");
-                if (emailIndex !== -1) newSettings[emailIndex] = { ...newSettings[emailIndex], value: user.primaryEmailAddress?.emailAddress || "" };
-
-                return newSettings;
-            });
-        }
-    }, [user]);
-
-    useEffect(() => {
-        setUserSettings(prev => {
-            const newSettings = [...prev];
-            const darkModeIndex = newSettings.findIndex(s => s.label === "Dark Mode");
-            if (darkModeIndex !== -1) {
-                newSettings[darkModeIndex] = { ...newSettings[darkModeIndex], value: isDarkMode };
-            }
-            return newSettings;
-        });
-    }, [isDarkMode]);
+      setUserSettings(userSettingOptions);
+    }, [userSettingOptions]);
 
     const handleToggleChange = (index: number) => {
-        const settingsCopy = [...userSettings];
-        const setting = settingsCopy[index];
+        const setting = userSettings[index];
+        if (!setting) return;
 
-        if (setting.label === "Dark Mode") {
-            dispatch(setIsDarkMode(!setting.value));
+        if (setting.key === "darkMode") {
+            dispatch(setIsDarkMode(!Boolean(setting.value)));
             return;
         }
 
-        settingsCopy[index].value = !settingsCopy[index].value as boolean;
+        const settingsCopy = [...userSettings];
+        const updatedValue = !(setting.value as boolean);
+        settingsCopy[index] = { ...setting, value: updatedValue };
         setUserSettings(settingsCopy);
     }
 
@@ -82,13 +84,13 @@ const Settings = () => {
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (err) {
             console.error("Error updating profile picture:", err);
-            alert("Failed to update profile picture");
+            alert(t("settings.errors.profilePicture"));
         }
     }
 
     const handleSave = async () => {
         if (!user) return;
-        const usernameSetting = userSettings.find(s => s.label === "Username");
+        const usernameSetting = userSettings.find(s => s.key === "username");
 
         if (usernameSetting && typeof usernameSetting.value === 'string') {
             const [firstName, ...lastNameParts] = usernameSetting.value.split(' ');
@@ -103,19 +105,19 @@ const Settings = () => {
                 setTimeout(() => setShowSuccess(false), 3000);
             } catch (err) {
                 console.error("Error updating profile:", err);
-                alert("Failed to update profile");
+                alert(t("settings.errors.updateProfile"));
             }
         }
     }
 
     const handlePasswordChange = async () => {
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            setPasswordError("New passwords do not match");
+            setPasswordError(t("settings.passwordErrors.mismatch"));
             return;
         }
 
         if (passwordData.newPassword.length < 8) {
-             setPasswordError("Password must be at least 8 characters long");
+             setPasswordError(t("settings.passwordErrors.tooShort"));
              return;
         }
 
@@ -133,11 +135,11 @@ const Settings = () => {
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (err: any) {
             console.error("Error updating password:", err);
-            setPasswordError(err.errors?.[0]?.message || "Failed to update password. Check current password.");
+            setPasswordError(err.errors?.[0]?.message || t("settings.passwordErrors.default"));
         }
     }
 
-    if (!isLoaded) return <div>Loading...</div>;
+    if (!isLoaded) return <div>{t("common.loading")}</div>;
 
   return (
     <div className="w-full">
@@ -148,25 +150,25 @@ const Settings = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                 </div>
-                <span className="font-medium">Profile updated successfully!</span>
+                <span className="font-medium">{t("settings.success")}</span>
             </div>
         )}
-      <Header name="User Settings" />
+      <Header name={t("settings.title")} />
       <div className="overflow-x-auto mt-5 shadow-md">
         <table className="min-w-full bg-white rounded-lg">
           <thead className="">
             <tr>
               <th className="text-left py-3 px-4 uppercase font-semibold text-sm">
-                Setting
+                {t("settings.table.setting")}
               </th>
               <th className="text-left py-3 px-4 uppercase font-semibold text-sm">
-                Value
+                {t("settings.table.value")}
               </th>
             </tr>
           </thead>
           <tbody>
             {userSettings.map((setting, index) => (
-              <tr className="hover:bg-blue-50" key={setting.label}>
+              <tr className="hover:bg-blue-50" key={setting.key}>
                 <td className="py-2 px-4">{setting.label}</td>
                 <td className="py-2 px-4">
                   {setting.type === "toggle" ? (
@@ -180,15 +182,15 @@ const Settings = () => {
 
                         </div>
                     </label>
-                  ) : setting.type === "image" ? (
+                    ) : setting.type === "image" ? (
                     <div className="flex items-center gap-4">
                         <img
                             src={setting.value as string}
-                            alt="Profile"
+                            alt={t("settings.fields.profilePicture")}
                             className="w-12 h-12 rounded-xl object-cover border border-gray-300"
                         />
                         <label className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded transition-colors text-sm">
-                            Upload New
+                            {t("settings.uploadNew")}
                             <input
                                 type="file"
                                 className="hidden"
@@ -199,11 +201,11 @@ const Settings = () => {
                     </div>
                   ) : (
                     <input type="text"
-                    className={`px-4 py-2 border rounded-lg text-gray-500 focus:outline-none focus:border-blue-500 ${setting.label === "Email" ? "bg-gray-100 cursor-not-allowed" : "bg-white dark:bg-gray-100"}`}
+                    className={`px-4 py-2 border rounded-lg text-gray-500 focus:outline-none focus:border-blue-500 ${setting.key === "email" ? "bg-gray-100 cursor-not-allowed" : "bg-white dark:bg-gray-100"}`}
                     value={setting.value as string}
-                    readOnly={setting.label === "Email"}
+                    readOnly={setting.key === "email"}
                     onChange={(e) => {
-                      if (setting.label === "Email") return;
+                      if (setting.key === "email") return;
                       const settingsCopy = [...userSettings];
                       settingsCopy[index].value = e.target.value;
                       setUserSettings(settingsCopy);
@@ -222,19 +224,19 @@ const Settings = () => {
                 onClick={handleSave}
                 className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
             >
-                Save Changes
+                {t("settings.buttons.saveChanges")}
             </button>
             <button
                 onClick={() => setIsPasswordModalOpen(true)}
                 className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors"
             >
-                Change Password
+                {t("settings.buttons.changePassword")}
             </button>
         </div>
 
         <SignOutButton>
             <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors">
-                Sign Out
+                {t("settings.buttons.signOut")}
             </button>
         </SignOutButton>
       </div>
@@ -242,11 +244,11 @@ const Settings = () => {
         {isPasswordModalOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div className="bg-white p-6 rounded-lg shadow-xl w-96">
-                    <h2 className="text-xl font-bold mb-4">Change Password</h2>
+                    <h2 className="text-xl font-bold mb-4">{t("settings.passwordModal.title")}</h2>
                     {passwordError && <p className="text-red-500 text-sm mb-2">{passwordError}</p>}
 
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t("settings.passwordModal.currentPassword")}</label>
                         <input
                             type="password"
                             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
@@ -256,7 +258,7 @@ const Settings = () => {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t("settings.passwordModal.newPassword")}</label>
                         <input
                             type="password"
                             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
@@ -266,7 +268,7 @@ const Settings = () => {
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t("settings.passwordModal.confirmPassword")}</label>
                         <input
                             type="password"
                             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
@@ -284,13 +286,13 @@ const Settings = () => {
                             }}
                             className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                         >
-                            Cancel
+                            {t("settings.passwordModal.cancel")}
                         </button>
                         <button
                             onClick={handlePasswordChange}
                             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                         >
-                            Update Password
+                            {t("settings.passwordModal.update")}
                         </button>
                     </div>
                 </div>

@@ -5,6 +5,7 @@ import Navbar from "@/app/(components)/Navbar";
 import Sidebar from "@/app/(components)/Sidebar";
 import StoreProvider, { useAppSelector } from "./redux";
 import { usePathname } from "next/navigation";
+import { TranslationProvider } from "@/i18n";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
@@ -59,7 +60,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 const DashboardWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <StoreProvider>
-      <DashboardLayout>{children}</DashboardLayout>
+      <TranslationProvider>
+        <DashboardLayout>{children}</DashboardLayout>
+      </TranslationProvider>
     </StoreProvider>
   );
 };

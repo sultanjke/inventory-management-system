@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { useUser } from "@clerk/nextjs";
+import { useTranslation } from "@/i18n";
 
 interface SidebarLinkProps {
   href: string;
@@ -57,6 +58,7 @@ const Sidebar = () => {
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed
   );
+  const { t } = useTranslation();
 
   const toggleSidebar = () => {
     dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
@@ -89,7 +91,7 @@ const Sidebar = () => {
             isSidebarCollapsed ? "hidden" : "block"
           } font-extrabold text-2xl`}
         >
-          Stockify
+          {t("common.appName")}
         </h1>
 
         <button
@@ -106,39 +108,39 @@ const Sidebar = () => {
         <SidebarLink
           href="/dashboard"
           icon={Layout}
-          label="Dashboard"
+          label={t("sidebar.dashboard")}
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
           href="/inventory"
           icon={Archive}
-          label="Inventory"
+          label={t("sidebar.inventory")}
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
           href="/products"
           icon={Clipboard}
-          label="Products"
+          label={t("sidebar.products")}
           isCollapsed={isSidebarCollapsed}
         />
         {isAdmin && (
           <SidebarLink
             href="/users"
             icon={Users}
-            label="Users"
+            label={t("sidebar.users")}
             isCollapsed={isSidebarCollapsed}
           />
         )}
         <SidebarLink
           href="/settings"
           icon={SlidersHorizontal}
-          label="Settings"
+          label={t("sidebar.settings")}
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
           href="/expenses"
           icon={CircleDollarSign}
-          label="Expenses"
+          label={t("sidebar.expenses")}
           isCollapsed={isSidebarCollapsed}
         />
       </div>
@@ -147,7 +149,7 @@ const Sidebar = () => {
 
       <div className={`${isSidebarCollapsed ? "hidden" : "block"} mb-10`}>
         <p className="text-center text-xs text-gray-500">
-          &copy; 2025 Stockify
+          {t("sidebar.footer")}
         </p>
       </div>
     </div>

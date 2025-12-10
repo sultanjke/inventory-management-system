@@ -2,12 +2,21 @@
 
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsDarkMode, setIsSidebarCollapsed } from "@/state";
-import { Bell, ChevronDown, Globe, Menu, Moon, Settings, Sun } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  Globe,
+  Menu,
+  Moon,
+  Settings,
+  Sun,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useMemo, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Locale, useTranslation } from "@/i18n";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const Navbar = () => {
   const { user, isLoaded } = useUser();
@@ -18,7 +27,12 @@ const Navbar = () => {
 
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
   const { t, locale, setLocale } = useTranslation();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState(
+    searchParams.get("search") ?? ""
+  );
   const languages = useMemo(
     () => [
       { code: "en" as Locale, label: "English" },
@@ -29,16 +43,32 @@ const Navbar = () => {
   const currentLang =
     languages.find((lang) => lang.code === locale) ?? languages[0];
 
+  React.useEffect(() => {
+    setSearchValue(searchParams.get("search") ?? "");
+  }, [searchParams]);
+
   const toggleSidebar = () => {
     dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
   };
 
   const toggleDarkMode = () => {
     dispatch(setIsDarkMode(!isDarkMode));
-  }
+  };
 
-  const isAdmin = user?.primaryEmailAddress?.emailAddress === "s.mecheyev@outlook.com" || user?.fullName === "Sultan Mecheyev";
+  const isAdmin =
+    user?.primaryEmailAddress?.emailAddress === "s.mecheyev@outlook.com" ||
+    user?.fullName === "Sultan Mecheyev";
   const notificationCount = isLoaded && user ? (isAdmin ? 2 : 1) : 0;
+
+  const handleSearchSubmit = (e: React.FormEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    const trimmed = searchValue.trim();
+    if (!trimmed) {
+      router.push("/products");
+      return;
+    }
+    router.push(`/products?search=${encodeURIComponent(trimmed)}`);
+  };
 
   return (
     <div className="flex justify-between items-center w-full mb-7">
@@ -51,19 +81,24 @@ const Navbar = () => {
           <Menu className="w-4 h-4" />
         </button>
 
-        <div className="relative">
-
+        <form className="relative" onSubmit={handleSearchSubmit}>
           <input
             type="search"
             placeholder={t("common.searchPlaceholder")}
-            className="pl-10 pr-1 py-2 w-50 md:w-80 border-2 border-gray-300 bg-white rounded-lg focus:outline-none focus:border-blue-500"
+            className="pl-10 pr-3 py-2 w-50 md:w-80 border-2 border-gray-300 bg-white rounded-lg focus:outline-none focus:border-blue-500"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearchSubmit(e);
+              }
+            }}
           />
 
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Bell className="text-gray-500" size={20} />
+            <Bell className="text-gray-400" size={20} />
           </div>
-
-        </div>
+        </form>
       </div>
 
       {/* RIGHT SIDE */}

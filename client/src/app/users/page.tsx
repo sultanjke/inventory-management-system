@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "@/app/(components)/Header";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { getClerkUsers, deleteClerkUser } from "./actions";
@@ -8,7 +8,6 @@ import { useUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { useTranslation } from "@/i18n";
-import { useMemo } from "react";
 
 const Users = () => {
   const { user, isLoaded } = useUser();
@@ -37,6 +36,26 @@ const Users = () => {
       { field: "name", headerName: t("users.columns.name"), width: 200 },
       { field: "email", headerName: t("users.columns.email"), width: 200 },
       {
+        field: "lastSignInAt",
+        headerName: t("Last Signed In"),
+        width: 200,
+        valueGetter: (_value, row) => {
+          if (!row.lastSignInAt) return "-";
+          const date = new Date(row.lastSignInAt);
+          return date.toLocaleString();
+        },
+      },
+      {
+        field: "createdAt",
+        headerName: t("Joined"),
+        width: 160,
+        valueGetter: (_value, row) => {
+          if (!row.createdAt) return "-";
+          const date = new Date(row.createdAt);
+          return date.toLocaleDateString();
+        },
+      },
+      {
         field: "actions",
         headerName: t("users.columns.actions"),
         width: 100,
@@ -50,7 +69,7 @@ const Users = () => {
         ),
       },
     ],
-    [t]
+    [t, handleDelete]
   );
 
   useEffect(() => {

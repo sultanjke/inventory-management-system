@@ -2,12 +2,13 @@
 
 import { useCreateProductMutation, useGetProductsQuery } from "@/state/api";
 import { PlusCircleIcon, SearchIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "@/app/(components)/Header";
 import Rating from "@/app/(components)/Rating";
 import CreateProductModal from "./CreateProductModal";
 import Image from "next/image";
 import { useTranslation } from "@/i18n";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type ProductFormData = {
   name: string;
@@ -17,9 +18,14 @@ type ProductFormData = {
 };
 
 const Products = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const initialSearch = searchParams.get("search") ?? "";
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { t, locale } = useTranslation();
+  const searchQuery = searchTerm.trim();
   const currencyFormatter = useMemo(
     () =>
       new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US", {
@@ -29,11 +35,15 @@ const Products = () => {
     [locale]
   );
 
+  useEffect(() => {
+    setSearchTerm(initialSearch);
+  }, [initialSearch]);
+
   const {
     data: products,
     isLoading,
     isError,
-  } = useGetProductsQuery(searchTerm);
+  } = useGetProductsQuery(searchQuery);
 
   const [createProduct] = useCreateProductMutation();
   const handleCreateProduct = async (productData: ProductFormData) => {
@@ -62,7 +72,14 @@ const Products = () => {
             className="w-full py-2 px-4 rounded bg-white"
             placeholder={t("common.searchProductPlaceholder")}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setSearchTerm(next);
+              const query = next.trim()
+                ? `?search=${encodeURIComponent(next.trim())}`
+                : "";
+              router.replace(`${pathname}${query}`);
+            }}
           />
         </div>
       </div>

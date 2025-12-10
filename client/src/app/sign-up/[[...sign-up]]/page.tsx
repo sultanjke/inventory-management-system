@@ -1,7 +1,12 @@
-import { SignUp } from "@clerk/nextjs";
+"use client";
+
+import { SignUp, useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 
 export default function Page() {
+  const { isLoaded: authLoaded, isSignedIn } = useAuth();
+  const showLoader = authLoaded && isSignedIn;
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-50 dark:bg-gray-900">
       <div className="mb-8 flex items-center gap-3">
@@ -17,6 +22,12 @@ export default function Page() {
           Stockify
         </h1>
       </div>
+      {showLoader && (
+        <div className="mb-6 flex items-center gap-3 text-gray-600 dark:text-gray-300">
+          <span className="h-4 w-4 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+          <span className="text-sm font-medium">Loading...</span>
+        </div>
+      )}
       <SignUp
         appearance={{
           elements: {

@@ -5,6 +5,7 @@ import {
 import { TrendingUp } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { useTranslation } from "@/i18n";
+import { useAuth } from "@clerk/nextjs";
 
 type ExpenseSums = {
   [category: string]: number;
@@ -13,7 +14,11 @@ type ExpenseSums = {
 const colors = ["#00C49F", "#0088FE", "#FFBB28"];
 
 const CardExpenseSummary = () => {
-  const { data: dashboardMetrics, isLoading } = useGetDashboardMetricsQuery();
+  const { isLoaded } = useAuth();
+  const { data: dashboardMetrics, isLoading } = useGetDashboardMetricsQuery(
+    undefined,
+    { skip: !isLoaded }
+  );
   const { t, locale } = useTranslation();
   const currencyFormatter = new Intl.NumberFormat(
     locale === "ru" ? "ru-RU" : "en-US",

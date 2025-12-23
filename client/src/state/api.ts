@@ -1,4 +1,21 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import {
+  BaseQueryFn,
+  FetchArgs,
+  FetchBaseQueryError,
+  createApi,
+  fetchBaseQuery,
+} from "@reduxjs/toolkit/query/react";
+
+const getClerkToken = async () => {
+  if (typeof window === "undefined") return null;
+  const clerk = (window as any).Clerk;
+  if (!clerk?.session) return null;
+  try {
+    return await clerk.session.getToken();
+  } catch {
+    return null;
+  }
+};
 
 export interface Product {
   productId: string;
@@ -56,8 +73,34 @@ export interface User {
   email: string;
 }
 
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+});
+
+const baseQueryWithAuth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
+  args,
+  api,
+  extraOptions
+) => {
+  const token = await getClerkToken();
+  const headers = new Headers(
+    typeof args === "string" ? undefined : args.headers
+  );
+
+  if (token) {
+    headers.set("authorization", `Bearer ${token}`);
+  }
+
+  const adjustedArgs =
+    typeof args === "string"
+      ? { url: args, headers }
+      : { ...args, headers };
+
+  return rawBaseQuery(adjustedArgs, api, extraOptions);
+};
+
 export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL }),
+  baseQuery: baseQueryWithAuth,
   reducerPath: "api",
   tagTypes: ["DashboardMetrics", "Products", "Users", "Expenses"],
   endpoints: (build) => ({

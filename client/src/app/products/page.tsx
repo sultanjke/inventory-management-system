@@ -9,6 +9,7 @@ import CreateProductModal from "./CreateProductModal";
 import Image from "next/image";
 import { useTranslation } from "@/i18n";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useUserRole } from "@/hooks/useUserRole";
 
 type ProductFormData = {
   name: string;
@@ -25,7 +26,9 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { t, locale } = useTranslation();
+  const { role, isLoading: isRoleLoading } = useUserRole();
   const searchQuery = searchTerm.trim();
+  const canCreateProduct = role === "ADMIN" || role === "STAFF";
   const currencyFormatter = useMemo(
     () =>
       new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US", {
@@ -50,7 +53,7 @@ const Products = () => {
     await createProduct(productData);
   };
 
-  if (isLoading) {
+  if (isLoading || isRoleLoading) {
     return <div className="py-4">{t("common.loading")}</div>;
   }
 
@@ -87,13 +90,15 @@ const Products = () => {
       {/* HEADER BAR */}
       <div className="flex justify-between items-center mb-6">
         <Header name={t("products.title")} />
-        <button
-          className="flex items-center bg-blue-500 hover:bg-blue-700 text-gray-200 font-bold py-2 px-4 rounded"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <PlusCircleIcon className="w-5 h-5 mr-2 !text-gray-200" />{" "}
-          {t("products.createButton")}
-        </button>
+        {canCreateProduct && (
+          <button
+            className="flex items-center bg-blue-500 hover:bg-blue-700 text-gray-200 font-bold py-2 px-4 rounded"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <PlusCircleIcon className="w-5 h-5 mr-2 !text-gray-200" />{" "}
+            {t("products.createButton")}
+          </button>
+        )}
       </div>
       {/* BODY PRODUCTS LIST */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 justify-between">
@@ -137,7 +142,7 @@ const Products = () => {
 
       {/* MODAL */}
       <CreateProductModal
-        isOpen={isModalOpen}
+        isOpen={isModalOpen && canCreateProduct}
         onClose={() => setIsModalOpen(false)}
         onCreate={handleCreateProduct}
       />

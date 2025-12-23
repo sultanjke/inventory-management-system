@@ -9,10 +9,16 @@ import dashboardRoutes from "./routes/dashboardRoutes";
 import productRoutes from "./routes/productRoutes";
 import userRoutes from "./routes/userRoutes";
 import expenseRoutes from "./routes/expenseRoutes";
+import { handleClerkWebhook } from "./controllers/clerkWebhookController";
 
 /* CONFIGURATION */
 dotenv.config({ quiet: true });
 const app = express();
+app.post(
+  "/webhooks/clerk",
+  express.raw({ type: "application/json" }),
+  handleClerkWebhook
+);
 app.use(express.json());
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));

@@ -13,9 +13,13 @@ import {
   YAxis,
 } from "recharts";
 import { useTranslation } from "@/i18n";
+import { useAuth } from "@clerk/nextjs";
 
 const CardPurchaseSummary = () => {
-  const { data, isLoading } = useGetDashboardMetricsQuery();
+  const { isLoaded } = useAuth();
+  const { data, isLoading } = useGetDashboardMetricsQuery(undefined, {
+    skip: !isLoaded,
+  });
   const purchaseData = data?.purchaseSummary || [];
   const { t, locale } = useTranslation();
   const dateLocale = locale === "ru" ? "ru-RU" : "en-US";

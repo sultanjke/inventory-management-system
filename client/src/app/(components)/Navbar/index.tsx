@@ -17,6 +17,7 @@ import React, { useMemo, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Locale, useTranslation } from "@/i18n";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const Navbar = () => {
   const { user, isLoaded } = useUser();
@@ -29,6 +30,7 @@ const Navbar = () => {
   const { t, locale, setLocale } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { role } = useUserRole();
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [searchValue, setSearchValue] = useState(
     searchParams.get("search") ?? ""
@@ -55,9 +57,7 @@ const Navbar = () => {
     dispatch(setIsDarkMode(!isDarkMode));
   };
 
-  const isAdmin =
-    user?.primaryEmailAddress?.emailAddress === "s.mecheyev@outlook.com" ||
-    user?.fullName === "Sultan Mecheyev";
+  const isAdmin = role === "ADMIN";
   const notificationCount = isLoaded && user ? (isAdmin ? 2 : 1) : 0;
 
   const handleSearchSubmit = (e: React.FormEvent | React.KeyboardEvent) => {

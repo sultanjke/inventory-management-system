@@ -4,9 +4,14 @@ import React, { useMemo } from "react";
 import Rating from "../(components)/Rating";
 import Image from "next/image";
 import { useTranslation } from "@/i18n";
+import { useAuth } from "@clerk/nextjs";
 
 const CardPopularProducts = () => {
-  const { data: dashboardMetrics, isLoading } = useGetDashboardMetricsQuery();
+  const { isLoaded } = useAuth();
+  const { data: dashboardMetrics, isLoading } = useGetDashboardMetricsQuery(
+    undefined,
+    { skip: !isLoaded }
+  );
   const { t, locale } = useTranslation();
   const currencyFormatter = useMemo(
     () =>

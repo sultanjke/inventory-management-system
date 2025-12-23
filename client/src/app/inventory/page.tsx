@@ -5,10 +5,14 @@ import Header from "@/app/(components)/Header";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { useMemo } from "react";
 import { useTranslation } from "@/i18n";
+import { useAuth } from "@clerk/nextjs";
 
 const Inventory = () => {
   const { t, locale } = useTranslation();
-  const { data: products, isError, isLoading } = useGetProductsQuery();
+  const { isLoaded } = useAuth();
+  const { data: products, isError, isLoading } = useGetProductsQuery(undefined, {
+    skip: !isLoaded,
+  });
   const currencyFormatter = useMemo(
     () =>
       new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US", {

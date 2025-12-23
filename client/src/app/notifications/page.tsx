@@ -4,19 +4,19 @@ import { useUser } from "@clerk/nextjs";
 import Header from "@/app/(components)/Header";
 import React from "react";
 import { useTranslation } from "@/i18n";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const Notifications = () => {
   const { user, isLoaded } = useUser();
   const { t, locale } = useTranslation();
+  const { role } = useUserRole();
   const dateLocale = locale === "ru" ? "ru-RU" : "en-US";
 
   if (!isLoaded || !user) {
     return <div className="py-4">{t("common.loading")}</div>;
   }
 
-  const isAdmin =
-    user?.primaryEmailAddress?.emailAddress === "s.mecheyev@outlook.com" ||
-    user?.fullName === "Sultan Mecheyev";
+  const isAdmin = role === "ADMIN";
 
   const createdDate = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString(dateLocale)

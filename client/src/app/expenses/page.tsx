@@ -4,7 +4,7 @@ import {
   ExpenseByCategorySummary,
   useGetExpensesByCategoryQuery,
 } from "@/state/api";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import Header from "@/app/(components)/Header";
 import {
   Cell,
@@ -15,6 +15,8 @@ import {
   Tooltip,
 } from "recharts";
 import { useTranslation } from "@/i18n";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useRouter } from "next/navigation";
 
 type AggregatedDataItem = {
   name: string;
@@ -32,16 +34,20 @@ const Expenses = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const { t } = useTranslation();
+  const { role, isLoading: isRoleLoading } = useUserRole();
+  const router = useRouter();
 
   const {
     data: expensesData,
     isLoading,
     isError,
-  } = useGetExpensesByCategoryQuery();
+  } = useGetExpensesByCategoryQuery(undefined, {
+    skip: isRoleLoading || !role || role === "STAFF",
+  });
 
   const expenses = useMemo(() => expensesData ?? [], [expensesData]);
 
-  const translateCategory = (category: string) => {
+  const translateCategory = useCallback((category: string) => {
     switch (category) {
       case "Office":
         return t("expenses.categories.office");
@@ -54,7 +60,7 @@ const Expenses = () => {
       default:
         return category;
     }
-  };
+  }, [t]);
 
   const parseDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -81,13 +87,53 @@ const Expenses = () => {
           acc[displayCategory].color = `#${Math.floor(
             Math.random() * 16777215
           ).toString(16)}`;
-          acc[displayCategory].amount += amount;
         }
+        acc[displayCategory].amount += amount;
         return acc;
       }, {});
 
     return Object.values(filtered);
+  }, [expenses, selectedCategory, startDate, endDate, translateCategory]);
+
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter((data: ExpenseByCategorySummary) => {
+      const matchesCategory =
+        selectedCategory === "All" || data.category === selectedCategory;
+      const dataDate = parseDate(data.date);
+      const matchesDate =
+        !startDate || !endDate || (dataDate >= startDate && dataDate <= endDate);
+      return matchesCategory && matchesDate;
+    });
   }, [expenses, selectedCategory, startDate, endDate]);
+
+  const handleDownloadReport = () => {
+    const headers = [
+      t("expenses.categoryLabel"),
+      t("expenses.amountLabel"),
+      t("expenses.dateLabel"),
+    ];
+
+    const toCsvValue = (value: string | number) =>
+      `"${String(value).replace(/"/g, '""')}"`;
+
+    const rows = filteredExpenses.map((item) => [
+      translateCategory(item.category),
+      Number(item.amount) || 0,
+      parseDate(item.date),
+    ]);
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map(toCsvValue).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "expenses-report.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const classNames = {
     label: "block text-sm font-medium text-gray-700",
@@ -95,8 +141,18 @@ const Expenses = () => {
       "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md",
   };
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isRoleLoading && role === "STAFF") {
+      router.push("/dashboard");
+    }
+  }, [isRoleLoading, role, router]);
+
+  if (isRoleLoading || isLoading) {
     return <div className="py-4">{t("common.loading")}</div>;
+  }
+
+  if (role === "STAFF") {
+    return null;
   }
 
   if (isError || !expensesData) {
@@ -169,6 +225,18 @@ const Expenses = () => {
                 className={classNames.selectInput}
                 onChange={(e) => setEndDate(e.target.value)}
               />
+            </div>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleDownloadReport}
+                className="w-full inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              >
+                {t("expenses.downloadReport")}
+              </button>
+              <p className="mt-2 text-xs text-gray-500">
+                {t("expenses.downloadHelper")}
+              </p>
             </div>
           </div>
         </div>

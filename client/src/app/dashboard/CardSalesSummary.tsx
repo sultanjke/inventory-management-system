@@ -11,9 +11,13 @@ import {
   YAxis,
 } from "recharts";
 import { useTranslation } from "@/i18n";
+import { useAuth } from "@clerk/nextjs";
 
 const CardSalesSummary = () => {
-  const { data, isLoading, isError } = useGetDashboardMetricsQuery();
+  const { isLoaded } = useAuth();
+  const { data, isLoading, isError } = useGetDashboardMetricsQuery(undefined, {
+    skip: !isLoaded,
+  });
   const salesData = data?.salesSummary || [];
   const { t, locale } = useTranslation();
   const dateLocale = locale === "ru" ? "ru-RU" : "en-US";
@@ -78,7 +82,7 @@ const CardSalesSummary = () => {
                   {averageChangePercentage.toFixed(2)}%
                 </span>
               </div>
-              <select
+              {/* <select
                 className="shadow-sm border border-gray-300 bg-white p-2 rounded"
                 value={timeframe}
                 onChange={(e) => {
@@ -90,7 +94,7 @@ const CardSalesSummary = () => {
                 <option value="monthly">
                   {t("dashboard.timeframeMonthly")}
                 </option>
-              </select>
+              </select> */}
             </div>
             {/* CHART */}
             <ResponsiveContainer width="100%" height={300} className="px-7">
@@ -121,13 +125,13 @@ const CardSalesSummary = () => {
                     `$${value.toLocaleString(locale)}`,
                   ]}
                   labelFormatter={(label) => {
-                  const date = new Date(label);
-                  return date.toLocaleDateString(dateLocale, {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  });
-                }}
+                    const date = new Date(label);
+                    return date.toLocaleDateString(dateLocale, {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    });
+                  }}
                 />
                 <Bar
                   dataKey="totalValue"

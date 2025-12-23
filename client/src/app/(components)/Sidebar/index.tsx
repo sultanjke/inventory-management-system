@@ -2,13 +2,13 @@
 
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsSidebarCollapsed } from "@/state";
-import { Archive, CircleDollarSign, Clipboard, Layout, LucideIcon, Menu, SlidersHorizontal, Users } from "lucide-react";
+import { Archive, CircleDollarSign, Clipboard, CodeXml, Layout, LucideIcon, Menu, SlidersHorizontal, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
-import { useUser } from "@clerk/nextjs";
 import { useTranslation } from "@/i18n";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface SidebarLinkProps {
   href: string;
@@ -53,12 +53,12 @@ const SidebarLink = ({
 };
 
 const Sidebar = () => {
-  const { user } = useUser();
   const dispatch = useAppDispatch();
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed
   );
   const { t } = useTranslation();
+  const { role } = useUserRole();
 
   const toggleSidebar = () => {
     dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
@@ -68,7 +68,8 @@ const Sidebar = () => {
     isSidebarCollapsed ? "w-0 md:w-16" : "w-72 md:w-64"
   } bg-white transition-all duration-300 overflow-hidden h-full shadow-md z-40`;
 
-  const isAdmin = user?.primaryEmailAddress?.emailAddress === "s.mecheyev@outlook.com" || user?.fullName === "Sultan Mecheyev";
+  const canAccessUsers = role === "ADMIN";
+  const canAccessExpenses = role === "ADMIN" || role === "MANAGER";
 
   return (
     <div className={sidebarClassNames}>
@@ -123,26 +124,28 @@ const Sidebar = () => {
           label={t("sidebar.products")}
           isCollapsed={isSidebarCollapsed}
         />
-        {isAdmin && (
-          <SidebarLink
-            href="/users"
-            icon={Users}
-            label={t("sidebar.users")}
-            isCollapsed={isSidebarCollapsed}
-          />
-        )}
         <SidebarLink
           href="/settings"
           icon={SlidersHorizontal}
           label={t("sidebar.settings")}
           isCollapsed={isSidebarCollapsed}
         />
-        <SidebarLink
-          href="/expenses"
-          icon={CircleDollarSign}
-          label={t("sidebar.expenses")}
-          isCollapsed={isSidebarCollapsed}
-        />
+        {canAccessExpenses && (
+          <SidebarLink
+            href="/expenses"
+            icon={CircleDollarSign}
+            label={t("sidebar.expenses")}
+            isCollapsed={isSidebarCollapsed}
+          />
+        )}
+        {canAccessUsers && (
+          <SidebarLink
+            href="/users"
+            icon={CodeXml}
+            label={t("sidebar.users")}
+            isCollapsed={isSidebarCollapsed}
+          />
+        )}
       </div>
 
       {/* BOTTOM SETTINGS */}

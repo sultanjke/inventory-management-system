@@ -50,6 +50,7 @@ export async function createClerkUser(params: {
       emailAddress: [params.email],
       password: params.password,
       skipPasswordChecks: params.skipPasswordChecks,
+      publicMetadata: { role: "STAFF" },
     })
 
     return mapUserResponse(user)
@@ -60,6 +61,25 @@ export async function createClerkUser(params: {
         error?.errors?.[0]?.message ||
         error?.message ||
         "Failed to create user"
+    )
+  }
+}
+
+export async function updateClerkUserRole(userId: string, role: string) {
+  try {
+    const client = await clerkClient()
+    const normalizedRole = role.toUpperCase()
+    const user = await client.users.updateUser(userId, {
+      publicMetadata: { role: normalizedRole },
+    })
+    return mapUserResponse(user)
+  } catch (error: any) {
+    console.error("Clerk updateUser failed", serializeClerkError(error))
+    throw new Error(
+      error?.errors?.[0]?.longMessage ||
+        error?.errors?.[0]?.message ||
+        error?.message ||
+        "Failed to update user role"
     )
   }
 }
@@ -120,6 +140,10 @@ export async function revokeClerkInvitation(invitationId: string) {
 }
 
 function mapUserResponse(user: any) {
+  const rawRole = user?.publicMetadata?.role ?? user?.unsafeMetadata?.role
+  const normalizedRole =
+    typeof rawRole === "string" ? rawRole.toUpperCase() : "STAFF"
+
   return {
     userId: user.id,
     name: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || 'Unknown',
@@ -127,6 +151,7 @@ function mapUserResponse(user: any) {
     lastActiveAt: user.lastActiveAt ? new Date(user.lastActiveAt).toISOString() : null,
     lastSignInAt: user.lastSignInAt ? new Date(user.lastSignInAt).toISOString() : null,
     createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : null,
+    role: ["ADMIN", "MANAGER", "STAFF"].includes(normalizedRole) ? normalizedRole : "STAFF",
   }
 }
 

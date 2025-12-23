@@ -10,29 +10,21 @@ import {
   inviteClerkUser,
   getClerkInvitations,
   revokeClerkInvitation,
+  updateClerkUserRole,
 } from "./actions";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { ChevronDown, Trash2, X } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { useUserRole } from "@/hooks/useUserRole";
 
-const getApiBaseUrl = () => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-  return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-};
-
 const Users = () => {
   const { isLoaded } = useUser();
-  const { getToken } = useAuth();
   const { role, isLoading: isRoleLoading } = useUserRole();
   const { t } = useTranslation();
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
-  const [roleMap, setRoleMap] = useState<Record<string, string>>({});
-  const [isRolesLoading, setIsRolesLoading] = useState(false);
-  const [rolesError, setRolesError] = useState<string | null>(null);
   const [roleUpdatingId, setRoleUpdatingId] = useState<string | null>(null);
   const [viewTab, setViewTab] = useState<"users" | "invitations">("users");
   const [invitations, setInvitations] = useState<any[]>([]);
@@ -85,10 +77,6 @@ const Users = () => {
         try {
           await deleteClerkUser(userId);
           setUsers((prev) => prev.filter((u) => u.userId !== userId));
-          setRoleMap((prev) => {
-            const { [userId]: _removed, ...rest } = prev;
-            return rest;
-          });
           triggerToast(t("users.success"), "success");
         } catch (error) {
           console.error("Failed to delete user:", error);
@@ -117,7 +105,6 @@ const Users = () => {
         skipPasswordChecks: createForm.skipPasswordChecks,
       });
       setUsers((prev) => [...prev, newUser]);
-      setRoleMap((prev) => ({ ...prev, [newUser.userId]: "STAFF" }));
       triggerToast("User created successfully.", "success");
       resetModal();
     } catch (error) {
@@ -164,22 +151,12 @@ const Users = () => {
   const handleRoleChange = async (userId: string, nextRole: string) => {
     try {
       setRoleUpdatingId(userId);
-      const token = await getToken();
-      const response = await fetch(`${getApiBaseUrl()}/users/${userId}/role`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ role: nextRole }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update role");
-      }
-
-      const updated = await response.json();
-      setRoleMap((prev) => ({ ...prev, [userId]: updated.role }));
+      const updated = await updateClerkUserRole(userId, nextRole);
+      setUsers((prev) =>
+        prev.map((item) =>
+          item.userId === userId ? { ...item, role: updated.role } : item
+        )
+      );
       triggerToast("Role updated.", "success");
     } catch (error: any) {
       console.error("Failed to update role:", error);
@@ -205,9 +182,9 @@ const Users = () => {
   const usersWithRoles = useMemo(() => {
     return users.map((userItem) => ({
       ...userItem,
-      role: roleMap[userItem.userId] || "STAFF",
+      role: userItem.role || "STAFF",
     }));
-  }, [users, roleMap]);
+  }, [users]);
 
   const statusOptions = useMemo(
     () => [
@@ -250,7 +227,7 @@ const Users = () => {
         headerName: "Role",
         width: 160,
         renderCell: (params) => {
-          const currentRole = roleMap[params.row.userId] || "STAFF";
+          const currentRole = params.row.role || "STAFF";
           const isUpdating = roleUpdatingId === params.row.userId;
           return (
             <select
@@ -300,7 +277,7 @@ const Users = () => {
         ),
       },
     ],
-    [t, handleDelete, handleRoleChange, roleMap, roleUpdatingId]
+    [t, handleDelete, handleRoleChange, roleUpdatingId]
   );
 
   const inviteColumns: GridColDef[] = useMemo(
@@ -426,40 +403,6 @@ const Users = () => {
   }, []);
 
   useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        setIsRolesLoading(true);
-        const token = await getToken();
-        const response = await fetch(`${getApiBaseUrl()}/users`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to load user roles");
-        }
-
-        const data = await response.json();
-        const nextRoleMap = data.reduce((acc: Record<string, string>, item: any) => {
-          acc[item.userId] = item.role;
-          return acc;
-        }, {});
-
-        setRoleMap(nextRoleMap);
-        setRolesError(null);
-      } catch (error: any) {
-        console.error("Failed to fetch user roles:", error);
-        setRolesError(error?.message || "Failed to load user roles.");
-      } finally {
-        setIsRolesLoading(false);
-      }
-    };
-
-    if (role === "ADMIN" && isLoaded && !isRolesLoading && Object.keys(roleMap).length === 0) {
-      fetchRoles();
-    }
-  }, [getToken, isLoaded, isRolesLoading, role, roleMap]);
-
-  useEffect(() => {
     const fetchInvitations = async () => {
       try {
         setIsInvitesLoading(true);
@@ -573,9 +516,6 @@ const Users = () => {
 
       {viewTab === "users" ? (
         <div className="mt-3">
-          {rolesError && (
-            <div className="mb-3 text-sm text-red-600">{rolesError}</div>
-          )}
           <DataGrid
             rows={usersWithRoles}
             columns={columns}

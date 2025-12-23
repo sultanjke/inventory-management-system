@@ -15,7 +15,7 @@ const getApiBaseUrl = () => {
 };
 
 export const useUserRole = (): RoleState => {
-  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { isLoaded, isSignedIn, userId } = useAuth();
   const [role, setRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,18 +27,22 @@ export const useUserRole = (): RoleState => {
     const fetchRole = async () => {
       try {
         setIsLoading(true);
-        const token = await getToken();
-        const response = await fetch(`${getApiBaseUrl()}/users/me`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        });
+        const baseUrl = getApiBaseUrl();
+        if (!baseUrl) {
+          throw new Error("Missing API base URL");
+        }
 
+        const response = await fetch(`${baseUrl}/users`);
         if (!response.ok) {
           throw new Error("Failed to load user role");
         }
 
         const data = await response.json();
+        const match = data.find((item: any) => item.userId === userId);
+        const resolvedRole = (match?.role as UserRole | undefined) ?? null;
+
         if (isMounted) {
-          setRole(data.role);
+          setRole(resolvedRole);
           setError(null);
         }
       } catch (err: any) {
@@ -58,7 +62,7 @@ export const useUserRole = (): RoleState => {
     return () => {
       isMounted = false;
     };
-  }, [getToken, isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, userId]);
 
   return { role, isLoading, error };
 };

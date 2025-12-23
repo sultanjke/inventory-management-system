@@ -77,15 +77,41 @@ const rawBaseQuery = fetchBaseQuery({
   baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
 });
 
+const buildHeaders = (args: string | FetchArgs) => {
+  const headers = new Headers();
+
+  if (typeof args !== "string" && args.headers) {
+    const existing = args.headers as HeadersInit;
+
+    if (existing instanceof Headers) {
+      existing.forEach((value, key) => {
+        headers.set(key, value);
+      });
+    } else if (Array.isArray(existing)) {
+      existing.forEach((entry) => {
+        if (Array.isArray(entry) && entry.length === 2) {
+          headers.set(entry[0], entry[1]);
+        }
+      });
+    } else {
+      Object.entries(existing).forEach(([key, value]) => {
+        if (value !== undefined) {
+          headers.set(key, String(value));
+        }
+      });
+    }
+  }
+
+  return headers;
+};
+
 const baseQueryWithAuth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
   args,
   api,
   extraOptions
 ) => {
   const token = await getClerkToken();
-  const headers = new Headers(
-    typeof args === "string" ? undefined : args.headers
-  );
+  const headers = buildHeaders(args);
 
   if (token) {
     headers.set("authorization", `Bearer ${token}`);

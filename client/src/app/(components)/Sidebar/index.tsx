@@ -42,7 +42,7 @@ const SidebarLink = ({
         }
         }`}
       >
-        <Icon className="w-6 h-6 !text-gray-700"></Icon>
+        <Icon className="w-6 h-6 shrink-0 !text-gray-700"></Icon>
 
         <span
           className={`${

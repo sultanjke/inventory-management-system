@@ -15,6 +15,8 @@ interface SidebarLinkProps {
   icon: LucideIcon;
   label: string;
   isCollapsed: boolean;
+  badge?: string;
+  badgeClassName?: string;
 }
 
 const SidebarLink = ({
@@ -22,6 +24,8 @@ const SidebarLink = ({
   icon: Icon,
   label,
   isCollapsed,
+  badge,
+  badgeClassName,
 }: SidebarLinkProps) => {
   const pathname = usePathname();
   const isActive =
@@ -42,10 +46,17 @@ const SidebarLink = ({
 
         <span
           className={`${
-            isCollapsed ? "hidden" : "block"
+            isCollapsed ? "hidden" : "inline-flex items-center gap-4"
           } font-medium text-gray-700`}
         >
-          {label}
+          <span>{label}</span>
+          {badge && (
+            <span
+              className={`rounded-lg border px-3 py-0.5 text-[10px] tracking-wide ${badgeClassName || "bg-red-600/60 text-white border-red-950/15"}`}
+            >
+              {badge}
+            </span>
+          )}
         </span>
       </div>
     </Link>
@@ -144,6 +155,7 @@ const Sidebar = () => {
             icon={CodeXml}
             label={t("sidebar.users")}
             isCollapsed={isSidebarCollapsed}
+            badge="Admin"
           />
         )}
       </div>

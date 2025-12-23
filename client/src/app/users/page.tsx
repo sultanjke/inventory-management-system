@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Header from "@/app/(components)/Header";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { ClickAwayListener, Popper } from "@mui/material";
 import {
   getClerkUsers,
   deleteClerkUser,
@@ -11,10 +12,15 @@ import {
   getClerkInvitations,
   revokeClerkInvitation,
   updateClerkUserRole,
+  updateClerkUserPassword,
+  lockClerkUser,
+  unlockClerkUser,
+  banClerkUser,
+  unbanClerkUser,
 } from "./actions";
 import { useUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
-import { ChevronDown, Trash2, X } from "lucide-react";
+import { Ban, ChevronDown, Copy, KeyRound, Lock, LockOpen, Trash2, X } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -51,6 +57,18 @@ const Users = () => {
   const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
   const [isSubmittingInvite, setIsSubmittingInvite] = useState(false);
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [passwordModalUser, setPasswordModalUser] = useState<any | null>(null);
+  const [passwordForm, setPasswordForm] = useState({
+    password: "",
+    confirmPassword: "",
+    skipPasswordChecks: false,
+    signOutOfOtherSessions: true,
+  });
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [openRoleUserId, setOpenRoleUserId] = useState<string | null>(null);
+  const [roleMenuAnchor, setRoleMenuAnchor] = useState<HTMLElement | null>(null);
 
   const triggerToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
@@ -71,6 +89,28 @@ const Users = () => {
     setIsModalOpen(false);
   };
 
+  const openPasswordModal = (userItem: any) => {
+    setPasswordModalUser(userItem);
+    setPasswordForm({
+      password: "",
+      confirmPassword: "",
+      skipPasswordChecks: false,
+      signOutOfOtherSessions: true,
+    });
+    setPasswordError(null);
+  };
+
+  const closePasswordModal = () => {
+    setPasswordModalUser(null);
+    setPasswordForm({
+      password: "",
+      confirmPassword: "",
+      skipPasswordChecks: false,
+      signOutOfOtherSessions: true,
+    });
+    setPasswordError(null);
+  };
+
   const handleDelete = useCallback(
     async (userId: string) => {
       if (confirm(t("users.confirmDelete"))) {
@@ -86,6 +126,17 @@ const Users = () => {
     },
     [t]
   );
+
+  const handleCopyEmail = async (email: string) => {
+    if (!email) return;
+    try {
+      await navigator.clipboard.writeText(email);
+      triggerToast("Email copied.", "success");
+    } catch (error) {
+      console.error("Failed to copy email:", error);
+      triggerToast("Failed to copy email.", "error");
+    }
+  };
 
   const handleCreateUser = async (event: FormEvent) => {
     event.preventDefault();
@@ -148,6 +199,72 @@ const Users = () => {
     }
   };
 
+  const handlePasswordUpdate = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!passwordModalUser) return;
+    if (!passwordForm.password) {
+      setPasswordError("Password is required.");
+      return;
+    }
+    if (passwordForm.password !== passwordForm.confirmPassword) {
+      setPasswordError("Passwords do not match.");
+      return;
+    }
+
+    setPasswordError(null);
+    setIsUpdatingPassword(true);
+    try {
+      const updated = await updateClerkUserPassword({
+        userId: passwordModalUser.userId,
+        password: passwordForm.password,
+        skipPasswordChecks: passwordForm.skipPasswordChecks,
+        signOutOfOtherSessions: passwordForm.signOutOfOtherSessions,
+      });
+      setUsers((prev) =>
+        prev.map((item) => (item.userId === updated.userId ? { ...item, ...updated } : item))
+      );
+      triggerToast("Password updated.", "success");
+      closePasswordModal();
+    } catch (error: any) {
+      console.error("Failed to update password:", error);
+      setPasswordError(error?.message || "Failed to update password.");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  const handleToggleLock = async (userId: string, isLocked: boolean) => {
+    setActionLoadingId(userId);
+    try {
+      const updated = isLocked ? await unlockClerkUser(userId) : await lockClerkUser(userId);
+      setUsers((prev) =>
+        prev.map((item) => (item.userId === updated.userId ? { ...item, ...updated } : item))
+      );
+      triggerToast(isLocked ? "User unlocked." : "User locked.", "success");
+    } catch (error: any) {
+      console.error("Failed to update lock status:", error);
+      triggerToast(error?.message || "Failed to update lock status.", "error");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleToggleBan = async (userId: string, isBanned: boolean) => {
+    setActionLoadingId(userId);
+    try {
+      const updated = isBanned ? await unbanClerkUser(userId) : await banClerkUser(userId);
+      setUsers((prev) =>
+        prev.map((item) => (item.userId === updated.userId ? { ...item, ...updated } : item))
+      );
+      triggerToast(isBanned ? "User unbanned." : "User banned.", "success");
+    } catch (error: any) {
+      console.error("Failed to update ban status:", error);
+      triggerToast(error?.message || "Failed to update ban status.", "error");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   const handleRoleChange = async (userId: string, nextRole: string) => {
     try {
       setRoleUpdatingId(userId);
@@ -200,6 +317,25 @@ const Users = () => {
     statusOptions.find((opt) => opt.value === inviteStatusFilter) ??
     statusOptions[0];
 
+  const roleOptions = useMemo(
+    () => [
+      { value: "ADMIN", label: "Admin" },
+      { value: "MANAGER", label: "Manager" },
+      { value: "STAFF", label: "Staff" },
+    ],
+    []
+  );
+
+  const openRoleMenu = (event: React.MouseEvent<HTMLButtonElement>, userId: string) => {
+    setRoleMenuAnchor(event.currentTarget);
+    setOpenRoleUserId(userId);
+  };
+
+  const closeRoleMenu = () => {
+    setOpenRoleUserId(null);
+    setRoleMenuAnchor(null);
+  };
+
   const handleRevokeInvitation = async (invitationId: string) => {
     if (!invitationId) return;
     setRevokingId(invitationId);
@@ -229,17 +365,65 @@ const Users = () => {
         renderCell: (params) => {
           const currentRole = params.row.role || "STAFF";
           const isUpdating = roleUpdatingId === params.row.userId;
+          const isOpen = openRoleUserId === params.row.userId;
+          const currentLabel =
+            roleOptions.find((option) => option.value === currentRole)?.label || "Staff";
           return (
-            <select
-              value={currentRole}
-              disabled={isUpdating}
-              onChange={(event) => handleRoleChange(params.row.userId, event.target.value)}
-              className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
-            >
-              <option value="ADMIN">Admin</option>
-              <option value="MANAGER">Manager</option>
-              <option value="STAFF">Staff</option>
-            </select>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={(event) => {
+                  if (isUpdating) return;
+                  if (isOpen) {
+                    closeRoleMenu();
+                  } else {
+                    openRoleMenu(event, params.row.userId);
+                  }
+                }}
+                className={`flex items-center gap-2 border border-gray-200 rounded-md px-3 py-2 text-xs bg-white shadow-sm focus:outline-none transition ${
+                  isUpdating
+                    ? "opacity-60 cursor-not-allowed"
+                    : "hover:border-indigo-500"
+                }`}
+                aria-expanded={isOpen}
+                disabled={isUpdating}
+              >
+                <span className="text-gray-700 font-semibold">{currentLabel}</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-gray-500 transition-transform ${
+                    isOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              <Popper
+                open={isOpen}
+                anchorEl={roleMenuAnchor}
+                placement="bottom-start"
+                className="z-50"
+              >
+                <ClickAwayListener onClickAway={closeRoleMenu}>
+                  <div className="mt-2 w-32 rounded-md border border-gray-200 bg-white shadow-lg">
+                    {roleOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`w-full text-left px-3 py-2 text-xs hover:bg-indigo-50 ${
+                          option.value === currentRole
+                            ? "bg-indigo-50 text-indigo-700 font-semibold"
+                            : "text-gray-700"
+                        }`}
+                        onClick={() => {
+                          handleRoleChange(params.row.userId, option.value);
+                          closeRoleMenu();
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </ClickAwayListener>
+              </Popper>
+            </div>
           );
         },
       },
@@ -266,18 +450,91 @@ const Users = () => {
       {
         field: "actions",
         headerName: t("users.columns.actions"),
-        width: 100,
-        renderCell: (params) => (
-          <button
-            onClick={() => handleDelete(params.row.userId)}
-            className="flex items-center justify-center w-full h-full text-red-500 hover:text-red-700"
-          >
-            <Trash2 size={20} />
-          </button>
-        ),
+        width: 260,
+        sortable: false,
+        renderCell: (params) => {
+          const isBusy = actionLoadingId === params.row.userId;
+          const isLocked = Boolean(params.row.locked);
+          const isBanned = Boolean(params.row.banned);
+          const buttonBase =
+            "inline-flex items-center justify-center h-9 w-9 rounded-md border border-gray-200 transition";
+
+          return (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleCopyEmail(params.row.email)}
+                className={`${buttonBase} text-gray-600 hover:text-gray-900 hover:bg-gray-50`}
+                title="Copy email"
+                disabled={!params.row.email}
+              >
+                <Copy size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => openPasswordModal(params.row)}
+                className={`${buttonBase} text-indigo-600 hover:bg-indigo-50`}
+                title="Reset password"
+                disabled={isBusy}
+              >
+                <KeyRound size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleLock(params.row.userId, isLocked)}
+                className={`${buttonBase} ${
+                  isLocked
+                    ? "text-amber-700 hover:bg-amber-50"
+                    : "text-emerald-700 hover:bg-emerald-50"
+                }`}
+                title={isLocked ? "Unlock user" : "Lock user"}
+                disabled={isBusy}
+              >
+                {isLocked ? <LockOpen size={16} /> : <Lock size={16} />}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleBan(params.row.userId, isBanned)}
+                className={`${buttonBase} ${
+                  isBanned
+                    ? "text-emerald-700 hover:bg-emerald-50"
+                    : "text-red-600 hover:bg-red-50"
+                }`}
+                title={isBanned ? "Unban user" : "Ban user"}
+                disabled={isBusy}
+              >
+                <Ban size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(params.row.userId)}
+                className={`${buttonBase} text-red-600 hover:bg-red-50`}
+                title="Delete user"
+                disabled={isBusy}
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          );
+        },
       },
     ],
-    [t, handleDelete, handleRoleChange, roleUpdatingId]
+    [
+      t,
+      handleDelete,
+      handleRoleChange,
+      roleUpdatingId,
+      actionLoadingId,
+      handleCopyEmail,
+      openPasswordModal,
+      handleToggleLock,
+      handleToggleBan,
+      openRoleUserId,
+      roleOptions,
+      roleMenuAnchor,
+      openRoleMenu,
+      closeRoleMenu,
+    ]
   );
 
   const inviteColumns: GridColDef[] = useMemo(
@@ -813,6 +1070,118 @@ const Users = () => {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {passwordModalUser && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-8">
+          <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white text-gray-900 shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+              <div>
+                <h2 className="text-xl font-semibold">Reset password</h2>
+                <p className="text-sm text-gray-500">{passwordModalUser.email}</p>
+              </div>
+              <button
+                onClick={closePasswordModal}
+                className="p-2 rounded-lg hover:bg-gray-100 text-gray-500"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {passwordError && (
+              <div className="px-6 pt-4 text-sm text-red-600">{passwordError}</div>
+            )}
+
+            <form onSubmit={handlePasswordUpdate} className="px-6 py-5 space-y-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-gray-600">New password</label>
+                <input
+                  type="password"
+                  value={passwordForm.password}
+                  onChange={(e) =>
+                    setPasswordForm((prev) => ({ ...prev, password: e.target.value }))
+                  }
+                  autoComplete="new-password"
+                  className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  placeholder="Enter a new password"
+                  required
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-gray-600">Confirm password</label>
+                <input
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) =>
+                    setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                  }
+                  autoComplete="new-password"
+                  className="w-full rounded-lg bg-white border border-gray-200 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  placeholder="Repeat the new password"
+                  required
+                />
+              </div>
+
+              <label className="inline-flex items-start gap-3 text-gray-800 text-sm">
+                <input
+                  type="checkbox"
+                  checked={passwordForm.skipPasswordChecks}
+                  onChange={(e) =>
+                    setPasswordForm((prev) => ({
+                      ...prev,
+                      skipPasswordChecks: e.target.checked,
+                    }))
+                  }
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span>
+                  Ignore password policies
+                  <p className="text-xs text-gray-500">
+                    If checked, password policies will not be enforced on this password.
+                  </p>
+                </span>
+              </label>
+
+              <label className="inline-flex items-start gap-3 text-gray-800 text-sm">
+                <input
+                  type="checkbox"
+                  checked={passwordForm.signOutOfOtherSessions}
+                  onChange={(e) =>
+                    setPasswordForm((prev) => ({
+                      ...prev,
+                      signOutOfOtherSessions: e.target.checked,
+                    }))
+                  }
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span>
+                  Sign out other sessions
+                  <p className="text-xs text-gray-500">
+                    Users will be signed out everywhere after the password change.
+                  </p>
+                </span>
+              </label>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closePasswordModal}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingPassword}
+                  className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-60"
+                >
+                  {isUpdatingPassword ? "Updating..." : "Update password"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

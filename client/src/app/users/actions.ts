@@ -1,6 +1,19 @@
 'use server'
 
 import { clerkClient } from '@clerk/nextjs/server'
+import { headers } from 'next/headers'
+
+const getRequestOrigin = () => {
+  const headerList = headers()
+  const forwardedHost = headerList.get('x-forwarded-host') || headerList.get('host')
+  const forwardedProto = headerList.get('x-forwarded-proto') || 'http'
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`
+  }
+
+  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+}
 
 export async function getClerkUsers() {
   const client = await clerkClient()
@@ -84,14 +97,106 @@ export async function updateClerkUserRole(userId: string, role: string) {
   }
 }
 
+export async function updateClerkUserPassword(params: {
+  userId: string
+  password: string
+  skipPasswordChecks?: boolean
+  signOutOfOtherSessions?: boolean
+}) {
+  try {
+    const client = await clerkClient()
+    const user = await client.users.updateUser(params.userId, {
+      password: params.password,
+      skipPasswordChecks: params.skipPasswordChecks,
+      signOutOfOtherSessions: params.signOutOfOtherSessions,
+    })
+    return mapUserResponse(user)
+  } catch (error: any) {
+    console.error("Clerk updateUser password failed", serializeClerkError(error))
+    throw new Error(
+      error?.errors?.[0]?.longMessage ||
+        error?.errors?.[0]?.message ||
+        error?.message ||
+        "Failed to update user password"
+    )
+  }
+}
+
+export async function lockClerkUser(userId: string) {
+  try {
+    const client = await clerkClient()
+    const user = await client.users.lockUser(userId)
+    return mapUserResponse(user)
+  } catch (error: any) {
+    console.error("Clerk lockUser failed", serializeClerkError(error))
+    throw new Error(
+      error?.errors?.[0]?.longMessage ||
+        error?.errors?.[0]?.message ||
+        error?.message ||
+        "Failed to lock user"
+    )
+  }
+}
+
+export async function unlockClerkUser(userId: string) {
+  try {
+    const client = await clerkClient()
+    const user = await client.users.unlockUser(userId)
+    return mapUserResponse(user)
+  } catch (error: any) {
+    console.error("Clerk unlockUser failed", serializeClerkError(error))
+    throw new Error(
+      error?.errors?.[0]?.longMessage ||
+        error?.errors?.[0]?.message ||
+        error?.message ||
+        "Failed to unlock user"
+    )
+  }
+}
+
+export async function banClerkUser(userId: string) {
+  try {
+    const client = await clerkClient()
+    const user = await client.users.banUser(userId)
+    return mapUserResponse(user)
+  } catch (error: any) {
+    console.error("Clerk banUser failed", serializeClerkError(error))
+    throw new Error(
+      error?.errors?.[0]?.longMessage ||
+        error?.errors?.[0]?.message ||
+        error?.message ||
+        "Failed to ban user"
+    )
+  }
+}
+
+export async function unbanClerkUser(userId: string) {
+  try {
+    const client = await clerkClient()
+    const user = await client.users.unbanUser(userId)
+    return mapUserResponse(user)
+  } catch (error: any) {
+    console.error("Clerk unbanUser failed", serializeClerkError(error))
+    throw new Error(
+      error?.errors?.[0]?.longMessage ||
+        error?.errors?.[0]?.message ||
+        error?.message ||
+        "Failed to unban user"
+    )
+  }
+}
+
 export async function inviteClerkUser(params: { email: string; expiresInDays?: number }) {
   try {
     const client = await clerkClient()
+    const redirectUrl = `${getRequestOrigin()}/invite`
 
     const invitation = await client.invitations.createInvitation({
       emailAddress: params.email,
       expiresInDays: params.expiresInDays,
       notify: true,
+      redirectUrl,
+      publicMetadata: { role: 'STAFF' },
     })
 
     // Return a plain object to keep the server action serializable for client components
@@ -152,6 +257,9 @@ function mapUserResponse(user: any) {
     lastSignInAt: user.lastSignInAt ? new Date(user.lastSignInAt).toISOString() : null,
     createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : null,
     role: ["ADMIN", "MANAGER", "STAFF"].includes(normalizedRole) ? normalizedRole : "STAFF",
+    banned: Boolean(user.banned),
+    locked: Boolean(user.locked),
+    passwordEnabled: Boolean(user.passwordEnabled),
   }
 }
 

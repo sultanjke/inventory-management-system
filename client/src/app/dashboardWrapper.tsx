@@ -24,7 +24,11 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     }
   });
 
-  const isAuthPage = pathname === "/" || pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up");
+  const isAuthPage =
+    pathname === "/" ||
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up") ||
+    pathname.startsWith("/invite");
 
   if (isAuthPage) {
     return (

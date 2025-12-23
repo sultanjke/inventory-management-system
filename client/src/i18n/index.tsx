@@ -149,7 +149,7 @@ const translations: Record<Locale, TranslationDictionary> = {
         "You successfully registered on {{date}}. We are glad to have you here.",
       adminTitle: "Admin Access Granted",
       adminBody:
-        "You have been granted admin privileges. You now have access to the Users page.",
+        "You have been granted admin privileges. You now have access to the Developer page.",
     },
     settings: {
       title: "User Settings",
@@ -327,7 +327,7 @@ const translations: Record<Locale, TranslationDictionary> = {
         "Вы успешно зарегистрировались {{date}}. Мы рады видеть вас здесь.",
       adminTitle: "Предоставлен доступ администратора",
       adminBody:
-        "Вам предоставлены права администратора. Теперь у вас есть доступ к странице пользователей.",
+        "Вам предоставлены права администратора. Теперь у вас есть доступ к странице разработчика.",
     },
     settings: {
       title: "Настройки пользователя",

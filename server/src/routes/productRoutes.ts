@@ -5,7 +5,7 @@ import { requireAuth, requireRole } from "../middleware/auth";
 
 const router = Router();
 
-router.get("/", requireAuth, getProducts);
+router.get("/", getProducts);
 router.post("/", requireAuth, requireRole([UserRole.ADMIN, UserRole.STAFF]), createProduct);
 
 export default router;

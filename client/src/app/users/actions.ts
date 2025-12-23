@@ -12,6 +12,27 @@ export async function getClerkUsers() {
 export async function deleteClerkUser(userId: string) {
   const client = await clerkClient()
   await client.users.deleteUser(userId)
+
+  const baseUrl = getApiBaseUrl()
+  if (!baseUrl) {
+    return
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/users/${userId}`, {
+      method: "DELETE",
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to delete user from local database")
+    }
+  } catch (error: any) {
+    console.error("Local user delete failed", serializeClerkError(error))
+    throw new Error(
+      error?.message ||
+        "User deleted in Clerk, but failed to remove from local database."
+    )
+  }
 }
 
 export async function createClerkUser(params: {
@@ -117,6 +138,11 @@ function mapInvitationResponse(invitation: any) {
     createdAt: invitation.createdAt ? new Date(invitation.createdAt).toISOString() : null,
     expiresAt: invitation.expiresAt ? new Date(invitation.expiresAt).toISOString() : null,
   }
+}
+
+function getApiBaseUrl() {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || ""
+  return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl
 }
 
 function serializeClerkError(error: any) {

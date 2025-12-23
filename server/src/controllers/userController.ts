@@ -99,6 +99,26 @@ export const updateUserRole = async (req: Request, res: Response): Promise<void>
   }
 };
 
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      res.status(400).json({ error: "Missing userId" });
+      return;
+    }
+
+    const result = await prisma.users.deleteMany({ where: { userId } });
+    if (result.count === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.json({ status: "deleted" });
+  } catch (error) {
+    res.status(500).json({ error: "Error deleting user" });
+  }
+};
+
 export const syncUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const body = (req.body ?? {}) as Record<string, unknown>;

@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Clerk: hide "Secured by Clerk" badge, keep footer action links */
+.cl-footerPages,
+.cl-footerPagesLink,
+[data-localization-key*="securedByClerk"] {
+  display: none !important;
+}
+
+/* Clerk (auth): hide the "Secured by Clerk" branding row.
+   Uses stable attributes from the rendered markup.
+   Keeps the "Sign up" / "Sign in" footer action link intact. */
+div:has(> a[aria-label="Clerk logo"][href^="https://go.clerk.com/"]) {
+  display: none !important;
+}
+
+p:has(+ a[aria-label="Clerk logo"][href^="https://go.clerk.com/"]) {
+  display: none !important;
+}
+
+a[aria-label="Clerk logo"][href^="https://go.clerk.com/"] {
+  display: none !important;
+}
+
 *,
 *::before,
 *::after {

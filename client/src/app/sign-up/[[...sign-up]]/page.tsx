@@ -33,6 +33,8 @@ export default function Page() {
           elements: {
             formButtonPrimary:
               "bg-blue-500 hover:bg-blue-600 text-white !shadow-none",
+            footerPages: "hidden",
+            footerPagesLink: "hidden",
           },
         }}
       />
